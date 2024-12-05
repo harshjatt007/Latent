@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import SignupForm from './SignupForm';
 import GoogleAuthRedirect from './GoogleAuthRedirect';
 import Dashboard from './Dashboard';
-import AdminDashboard from "./admindash";
+import UserDashboard from "./admindash";
 import SignInPage from "./SignInPage";
 import Battle from "./components/Battle";
 import FormComponent from "./components/form";
@@ -44,7 +44,7 @@ function App() {
 
         {/* Dashboard Route */}
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin-dash" element={<AdminDashboard />} />
+        <Route path="/admin-dash" element={<UserDashboard />} />
 
         {/* Additional Routes */}
         <Route path="/battle" element={<Battle />} />
