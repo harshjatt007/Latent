@@ -47,11 +47,36 @@ const FormComponent = () => {
     window.location.href = "https://razorpay.me/@adarshkumargupta435?amount=EPec5evqGoRk2C8icWNJlQ%3D%3D";
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted: ", formData);
-    alert("Form submitted successfully!");
+
+    const formData = new FormData();
+    formData.append("name", formData.name);
+    formData.append("address", formData.address);
+    formData.append("age", formData.age);
+    formData.append("rating", formData.rating);
+    formData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
+    formData.append("video", formData.video);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/form", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Error submitting form");
+      }
+
+      const result = await response.json();
+      console.log(result);
+      alert("Form submitted successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("Error submitting form");
+    }
   };
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -113,6 +138,28 @@ const FormComponent = () => {
           />
         </div>
 
+        {/* Rating */}
+        <div className="mb-4">
+          <label
+            htmlFor="rating"
+            className="block text-gray-700 font-bold mb-2"
+          >
+            Rating (Out of 5)
+          </label>
+          <input
+            type="number"
+            step="0.1"
+            max="5"
+            min="0"
+            id="rating"
+            name="rating"
+            value={formData.rating}
+            onChange={handleChange}
+            required
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         {/* About Yourself */}
         <div className="mb-4">
           <label
@@ -151,28 +198,6 @@ const FormComponent = () => {
               Add
             </button>
           </div>
-        </div>
-
-        {/* Rating */}
-        <div className="mb-4">
-          <label
-            htmlFor="rating"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            Rating (Out of 5)
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            max="5"
-            min="0"
-            id="rating"
-            name="rating"
-            value={formData.rating}
-            onChange={handleChange}
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
         </div>
 
         {/* Video Upload */}

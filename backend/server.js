@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const session = require('express-session');
 const authRoutes = require('./routes/auth');
+const formRoutes = require('./routes/formRoutes');
 const connectDB = require('./config/db');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -35,6 +36,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/form', formRoutes);
 
 // Razorpay configuration
 const razorpay = new Razorpay({
