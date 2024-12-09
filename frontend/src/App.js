@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+
 import Navbar from './components/Navbar';
 import BodySection from './components/BodySection';
 import Work from './components/Work';
@@ -7,11 +8,13 @@ import Review from './components/Review';
 import PartnershipSection from './components/PartnershipSection';
 import BlogSection from './components/BlogSection';
 import Footer from './components/Footer';
-import SignupForm from './SignupForm';
+
+import Login from './pages/auth/login.js';
+import Signup from './pages/auth/signup.js';
+
 import GoogleAuthRedirect from './GoogleAuthRedirect';
-import Dashboard from './Dashboard';
+import Dashboard from './pages/Dashboard.js';
 import UserDashboard from "./admindash";
-import SignInPage from "./SignInPage";
 import Battle from "./components/Battle";
 import FormComponent from "./components/form";
 import Contact from './pages/Contact';
@@ -22,11 +25,7 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
-    return <Navigate to="/signin" replace />;
-  }
-
-  if (isAuthenticated && !user?.isVerified) {
-    return <Navigate to="/verify-email" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -35,7 +34,7 @@ const ProtectedRoute = ({ children }) => {
 const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
 
-  if (isAuthenticated && user?.isVerified) {
+  if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -53,7 +52,7 @@ function App() {
     <Router>
       <Routes>
         {/* Authentication Routes */}
-        <Route path="/signup" element={<RedirectAuthenticatedUser><SignupForm /></RedirectAuthenticatedUser>} />
+        <Route path="/signup" element={<RedirectAuthenticatedUser><Signup /></RedirectAuthenticatedUser>} />
         <Route path="/google-auth-redirect" element={<GoogleAuthRedirect />} />
 
         {/* Main Routes */}
@@ -100,7 +99,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
 
         {/* Signin Routes */}
-        <Route path="/signin" element={<RedirectAuthenticatedUser><SignInPage /></RedirectAuthenticatedUser>} />
+        <Route path="/login" element={<RedirectAuthenticatedUser><Login /></RedirectAuthenticatedUser>} />
       </Routes>
     </Router>
   );

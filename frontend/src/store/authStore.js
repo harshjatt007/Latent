@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/auth";
-
+// Set withCredentials to true to allow credentials with requests
 axios.defaults.withCredentials = true;
 
+const API_URL = "http://localhost:5000/api/auth";
+
+// Handle error messages
 const handleError = (error) => {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message || "An unexpected error occurred.";
@@ -31,7 +33,7 @@ export const useAuthStore = create((set) => ({
         lastName,
       });
 
-      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("token", response.data.token); // Store the JWT token in localStorage
       set({
         user: response.data.user,
         isAuthenticated: true,
@@ -50,12 +52,12 @@ export const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await axios.post(`${API_URL}/login`, {
-        email,
-        password,
-      });
+      const response = await axios.post(`${API_URL}/login`, { email, password });
 
-      localStorage.setItem("token", response.data.token);
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token); // Store the JWT token in localStorage
+      }
+
       set({
         user: response.data.user,
         isAuthenticated: true,
@@ -81,7 +83,7 @@ export const useAuthStore = create((set) => ({
     try {
       const response = await axios.get(`${API_URL}/check-auth`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Send the token stored in localStorage
         },
       });
 
