@@ -37,6 +37,16 @@ const Battle = () => {
           avatar: "https://avatar.iran.liara.run/public/girl",
           result: "Defeat"
         },
+        {
+          name: "Ravi Kapoor",
+          avatar: "https://avatar.iran.liara.run/public/50",
+          result: "Defeat"
+        },
+        {
+          name: "Maya Singh",
+          avatar: "https://avatar.iran.liara.run/public/51",
+          result: "Defeat"
+        },
       ]
     },
     { 
@@ -129,11 +139,11 @@ const Battle = () => {
                   </motion.div>
                 </div>
 
-                {/* Show results if button is clicked */}
+                {/* Show results in a grid if button is clicked */}
                 {showResults && (
-                  <div className="p-6 mt-6 space-y-4">
+                  <div className="p-6 mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {battleType.winner.map((user, index) => (
-                      <div key={index} className="flex items-center space-x-6">
+                      <div key={index} className="flex items-center space-x-6 bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
                         <img
                           src={user.avatar}
                           alt={user.name}
