@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.png';
+import { useAuthStore } from '../store/authStore'; // Assuming you have a store for user authentication
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -10,6 +11,9 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Authentication state (check if the user is logged in)
+  const { isAuthenticated, logout } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,15 +133,29 @@ const Navbar = () => {
             )
           ))}
 
-          {/* Sign Up Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/signup')}
-            className="bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
-          >
-            <i className="fas fa-user mr-2"></i>Sign Up
-          </motion.button>
+          {/* Authentication Button (Sign Up / Logout) */}
+          {isAuthenticated ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                logout();
+                navigate('/login'); // Redirect to login page after logout
+              }}
+              className="bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
+            >
+              <i className="fas fa-sign-out-alt mr-2"></i>Logout
+            </motion.button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/signup')}
+              className="bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
+            >
+              <i className="fas fa-user mr-2"></i>Sign Up
+            </motion.button>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -191,13 +209,26 @@ const Navbar = () => {
                 )
               ))}
 
-              {/* Mobile Sign Up Button */}
-              <button
-                onClick={() => navigate('/signup')}
-                className="w-full bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
-              >
-                <i className="fas fa-user mr-2"></i>Sign Up
-              </button>
+              {/* Mobile Authentication Button (Sign Up / Logout) */}
+              {console.log(isAuthenticated)};
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/login'); // Redirect to login after logout
+                  }}
+                  className="w-full bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
+                >
+                  <i className="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/signup')}
+                  className="w-full bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
+                >
+                  <i className="fas fa-user mr-2"></i>Sign Up
+                </button>
+              )}
             </div>
           </motion.div>
         )}

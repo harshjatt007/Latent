@@ -35,7 +35,6 @@ exports.signup = async (req, res) => {
   }
 };
 
-// Signin function
 exports.signin = async (req, res) => {
   const { email, password } = req.body;
 
@@ -46,16 +45,23 @@ exports.signin = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Compare the hashed password with the one provided by the user
+    // Compare passwords
     const isPasswordMatch = await bcrypt.compare(password, existingUser.password);
     if (!isPasswordMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Send response with the token and user details (excluding the password)
+    // Generate token
+    const token = jwt.sign(
+      { id: existingUser._id, email: existingUser.email },
+      process.env.JWT_SECRET, // Use an environment variable for the secret key
+      { expiresIn: '1h' } // Token expiration time
+    );
+
+    // Send response
     res.status(200).json({
       message: 'Login successful',
-      // token,
+      token, // Include token
       user: {
         id: existingUser._id,
         firstName: existingUser.firstName,
@@ -65,6 +71,20 @@ exports.signin = async (req, res) => {
     });
   } catch (error) {
     console.error('Error during signin:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.checkAuth = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id); // Find the user from the decoded token
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error('Error during check-auth:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

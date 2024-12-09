@@ -159,11 +159,14 @@
 // };
 
 // export default Dashboard;
+
 import React, { useState, useEffect } from 'react';
-import { Upload, VideoIcon, Star, Award } from 'lucide-react';
+import { Upload, VideoIcon, Star, Award, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const UserDashboard = () => {
+  const navigate = useNavigate();
   const [userVideo, setUserVideo] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [competitionStats, setCompetitionStats] = useState({
@@ -171,6 +174,10 @@ const UserDashboard = () => {
     topRatedVideo: 4.7,
     myCurrentRanking: 8
   });
+
+  const handleBackClick = () => {
+    navigate('/');
+  };
 
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
@@ -198,8 +205,8 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">
-      {/* Header */}
+<div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">
+      {/* Header with Back Button */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -208,6 +215,13 @@ const UserDashboard = () => {
         >
           <h1 className="text-2xl font-bold text-white">My Talent Showcase</h1>
         </motion.div>
+        <button 
+          onClick={handleBackClick}
+          className="mt-4 sm:mt-0 sm:ml-4 flex items-center text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2"
+        >
+          <ArrowLeft className="mr-2" size={20} />
+          Back
+        </button>
       </header>
 
       {/* Competition Overview */}
