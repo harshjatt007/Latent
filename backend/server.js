@@ -44,6 +44,7 @@ app.use(passport.session());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/form', formRoutes);
+app.use('/api/upload', formRoutes);
 
 // Razorpay configuration
 const razorpay = new Razorpay({

@@ -1,89 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import logo from '../assets/logo.png';
-import { useAuthStore } from '../store/authStore'; // Assuming you have a store for user authentication
+import { useAuthStore } from '../store/authStore';
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Authentication state (check if the user is logged in)
   const { isAuthenticated, logout } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // More nuanced scroll detection
-      if (currentScrollY > lastScrollY && currentScrollY > 300) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-
+      setIsVisible(currentScrollY <= lastScrollY || currentScrollY <= 300);
       setLastScrollY(currentScrollY);
     };
 
-    // Throttle scroll event for performance
-    const throttledHandleScroll = () => {
-      if (!window.requestAnimationFrame) {
-        handleScroll();
-      } else {
-        window.requestAnimationFrame(handleScroll);
-      }
-    };
-
-    window.addEventListener('scroll', throttledHandleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', throttledHandleScroll);
-    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Navigation links configuration
   const navLinks = [
-    { 
-      label: 'Dashboard', 
-      path: '/dashboard',
-      type: 'route'
-    },
-    { 
-      label: 'Battles', 
-      path: '/battle',
-      type: 'route'
-    },
-    { 
-      label: 'Blog', 
-      path: 'blog-section',
-      type: 'scroll'
-    },
-    { 
-      label: 'Contact', 
-      path: '/contact',
-      type: 'route'
-    }
+    { label: 'Battles', path: '/battle', type: 'route' },
+    { label: 'Blog', path: 'blog-section', type: 'scroll' },
+    { label: 'Contact', path: '/contact', type: 'route' }
   ];
 
   const handleNavigation = (link) => {
-    // Close mobile menu
     setIsMobileMenuOpen(false);
-
-    // Handle navigation based on link type
-    if (link.type === 'route') {
-      navigate(link.path);
-    }
+    if (link.type === 'route') navigate(link.path);
   };
 
   return (
     <motion.nav
       initial={{ opacity: 0, y: -50 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         y: isVisible ? 0 : -100,
         transition: { duration: 0.3 }
       }}
@@ -91,22 +49,18 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
-        <motion.div 
+        <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate('/')}
           className="cursor-pointer"
         >
-          <img
-            src={logo}
-            alt="Logo"
-            className="h-12 w-auto object-contain"
-          />
+          <img src={logo} alt="Logo" className="h-12 w-auto object-contain" />
         </motion.div>
 
-        {/* Desktop Navigation */}
+        {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
+          {navLinks.map((link) =>
             link.type === 'scroll' ? (
               <ScrollLink
                 key={link.label}
@@ -124,115 +78,61 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleNavigation(link)}
-                className={`text-customBlue hover:text-blue-700 transition-colors ${
-                  location.pathname === link.path ? 'font-bold' : ''
-                }`}
+                className={`text-customBlue hover:text-blue-700 transition-colors ${location.pathname === link.path ? 'font-bold' : ''
+                  }`}
               >
                 {link.label}
               </motion.button>
             )
-          ))}
+          )}
 
-          {/* Authentication Button (Sign Up / Logout) */}
           {isAuthenticated ? (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                logout();
-                navigate('/login'); // Redirect to login page after logout
-              }}
-              className="bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
-            >
-              <i className="fas fa-sign-out-alt mr-2"></i>Logout
-            </motion.button>
+            // Avatar when logged in
+            <>
+              <img
+                src="https://avatar.iran.liara.run/public"
+                alt="Profile"
+                className="relative inline-block h-12 w-12 cursor-pointer rounded-full object-cover"
+                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+              />
+
+              {isProfileMenuOpen && (
+                <ul
+                  role="menu"
+                  className="absolute right-0 top-10 z-10 flex flex-col min-w-[180px] gap-2 rounded-md border bg-white p-3 text-sm shadow-lg"
+                >
+                  <a href="/">
+                    <button className="menu-item">My Profile</button>
+                  </a>
+                  <a href="/dashboard">
+                    <button className="menu-item">Dashboard</button>
+                  </a>
+                  <hr className="my-2" />
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsProfileMenuOpen(false);
+                    }}
+                    className="menu-item text-red-500 hover:text-red-700"
+                  >
+                    Logout
+                  </button>
+                </ul>
+              )}
+            </>
           ) : (
+            // Signup button when not logged in
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/signup')}
-              className="bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition"
             >
-              <i className="fas fa-user mr-2"></i>Sign Up
+              Signup
             </motion.button>
           )}
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden">
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-customBlue focus:outline-none"
-          >
-            {isMobileMenuOpen ? (
-              <i className="fas fa-times text-2xl"></i>
-            ) : (
-              <i className="fas fa-bars text-2xl"></i>
-            )}
-          </button>
-        </div>
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white"
-          >
-            <div className="px-4 pt-2 pb-4 space-y-2">
-              {navLinks.map((link) => (
-                link.type === 'scroll' ? (
-                  <ScrollLink
-                    key={link.label}
-                    to={link.path}
-                    smooth={true}
-                    duration={500}
-                    offset={-70}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block text-customBlue hover:bg-blue-50 px-3 py-2 rounded"
-                  >
-                    {link.label}
-                  </ScrollLink>
-                ) : (
-                  <button
-                    key={link.label}
-                    onClick={() => handleNavigation(link)}
-                    className={`w-full text-left text-customBlue hover:bg-blue-50 px-3 py-2 rounded ${
-                      location.pathname === link.path ? 'font-bold' : ''
-                    }`}
-                  >
-                    {link.label}
-                  </button>
-                )
-              ))}
-
-              {/* Mobile Authentication Button (Sign Up / Logout) */}
-              {console.log(isAuthenticated)};
-              {isAuthenticated ? (
-                <button
-                  onClick={() => {
-                    logout();
-                    navigate('/login'); // Redirect to login after logout
-                  }}
-                  className="w-full bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
-                >
-                  <i className="fas fa-sign-out-alt mr-2"></i>Logout
-                </button>
-              ) : (
-                <button
-                  onClick={() => navigate('/signup')}
-                  className="w-full bg-customBlue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
-                >
-                  <i className="fas fa-user mr-2"></i>Sign Up
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.nav>
   );
 };

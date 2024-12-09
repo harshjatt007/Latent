@@ -19,6 +19,8 @@ import Battle from "./pages/Battle.js";
 import FormComponent from "./components/form";
 import Contact from './pages/Contact';
 
+import VideoPlayer from "./pages/VideoPlayer.js";
+
 import { useAuthStore } from "./store/authStore.js";
 
 const ProtectedRoute = ({ children }) => {
@@ -85,15 +87,14 @@ function App() {
         <Route
           path="/admin-dash"
           element={
-            <ProtectedRoute>
               <UserDashboard />
-            </ProtectedRoute>
           }
         />
 
         {/* Additional Routes */}
         <Route path="/battle" element={<Battle />} />
         <Route path="/form" element={<FormComponent />} />
+        <Route path="/video/:filename" element={<VideoPlayer />} />
 
         {/* Contact Page */}
         <Route path="/contact" element={<Contact />} />

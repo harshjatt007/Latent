@@ -42,135 +42,93 @@ const FormComponent = () => {
     setFormData({ ...formData, aboutPoints: updatedPoints });
   };
 
-  const handlePayment = () => {
-    // Redirect to Razorpay link
-    window.location.href = "https://razorpay.me/@adarshkumargupta435?amount=EPec5evqGoRk2C8icWNJlQ%3D%3D";
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("name", formData.name);
-    formData.append("address", formData.address);
-    formData.append("age", formData.age);
-    formData.append("rating", formData.rating);
-    formData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
-    formData.append("video", formData.video);
-
+    const token = localStorage.getItem("token");
+  
+    console.log("Token:", token);
+  
+    const submissionData = new FormData();
+    submissionData.append("name", formData.name);
+    submissionData.append("address", formData.address);
+    submissionData.append("age", formData.age);
+    submissionData.append("rating", formData.rating);
+    submissionData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
+    submissionData.append("video", formData.video);    
+  
     try {
-      const response = await fetch("http://localhost:5000/api/form", {
+      console.log("Sending data:", submissionData);
+  
+      const response = await fetch("http://localhost:5000/api/upload", {
         method: "POST",
-        body: formData,
+        body: submissionData,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
       });
-
-      if (!response.ok) {
-        throw new Error("Error submitting form");
-      }
-
+  
+      if (!response.ok) throw new Error("Error submitting form");
+  
       const result = await response.json();
       console.log(result);
       alert("Form submitted successfully!");
     } catch (error) {
-      console.error(error);
+      console.error("Submission Error:", error);
       alert("Error submitting form");
     }
   };
-
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded px-8 pt-6 pb-8 w-full max-w-lg"
+        className="bg-white shadow-lg rounded-xl px-8 pt-6 pb-8 w-full max-w-2xl my-10 space-y-6"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
-          Enhanced React Form
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
+          Submit your video in Battle
         </h2>
 
-        {/* Name */}
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-gray-700 font-bold mb-2">
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        {/* Input Fields */}
+        <div className="grid grid-cols-1 gap-6">
+          {[{ label: "Name", type: "text", name: "name", value: formData.name },
+            { label: "Age", type: "number", name: "age", value: formData.age },
+            { label: "Rating (Out of 5)", type: "number", name: "rating", value: formData.rating, step: "0.1", min: "0", max: "5" }].map((input, idx) => (
+            <div key={idx}>
+              <label className="block text-gray-700 font-bold mb-2">
+                {input.label}
+              </label>
+              <input
+                type={input.type}
+                name={input.name}
+                value={input.value}
+                step={input.step}
+                min={input.min}
+                max={input.max}
+                onChange={handleChange}
+                required
+                className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          ))}
 
-        {/* Address */}
-        <div className="mb-4">
-          <label
-            htmlFor="address"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            Address
-          </label>
-          <textarea
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          ></textarea>
-        </div>
-
-        {/* Age */}
-        <div className="mb-4">
-          <label htmlFor="age" className="block text-gray-700 font-bold mb-2">
-            Age
-          </label>
-          <input
-            type="number"
-            id="age"
-            name="age"
-            value={formData.age}
-            onChange={handleChange}
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Rating */}
-        <div className="mb-4">
-          <label
-            htmlFor="rating"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            Rating (Out of 5)
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            max="5"
-            min="0"
-            id="rating"
-            name="rating"
-            value={formData.rating}
-            onChange={handleChange}
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div>
+            <label className="block text-gray-700 font-bold mb-2">Address</label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
         </div>
 
         {/* About Yourself */}
-        <div className="mb-4">
-          <label
-            htmlFor="about"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            About Yourself
-          </label>
-          <ul className="list-disc list-inside mb-2">
+        <div>
+          <label className="block text-gray-700 font-bold mb-2">About Yourself</label>
+          <ul className="list-disc list-inside space-y-1">
             {formData.aboutPoints.map((point, index) => (
-              <li key={index} className="flex justify-between items-center">
+              <li key={index} className="flex justify-between items-center text-gray-800">
                 <span>{point}</span>
                 <button
                   type="button"
@@ -185,15 +143,14 @@ const FormComponent = () => {
           <div className="flex items-center">
             <input
               type="text"
-              id="about"
               value={aboutInput}
               onChange={(e) => setAboutInput(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+              className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="button"
               onClick={handleAddAboutPoint}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="ml-3 px-4 py-2 bg-blue-500 text-white rounded"
             >
               Add
             </button>
@@ -201,51 +158,26 @@ const FormComponent = () => {
         </div>
 
         {/* Video Upload */}
-        <div className="mb-4">
-          <label
-            htmlFor="video"
-            className="block text-gray-700 font-bold mb-2"
-          >
-            Upload Video
-          </label>
-          <div className="w-32 h-32 border rounded bg-gray-200 flex items-center justify-center mb-2 overflow-hidden">
-            {videoPreview ? (
-              <video
-                src={videoPreview}
-                controls
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <span className="text-sm text-gray-500">No video</span>
-            )}
-          </div>
+        <div>
+          <label className="block text-gray-700 font-bold mb-2">Upload Video</label>
           <input
             type="file"
-            id="video"
-            name="video"
-            accept="video/*"
             onChange={handleFileChange}
+            accept="video/*"
             required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {videoPreview && (
+            <div className="mt-4">
+              <video controls src={videoPreview} className="w-full h-64"></video>
+            </div>
+          )}
         </div>
 
-        {/* Pay Now Button */}
-        <div className="mb-4 text-center">
-          <button
-            type="button"
-            onClick={handlePayment}
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            Pay Now
-          </button>
-        </div>
-
-        {/* Submit Button */}
-        <div className="text-center">
+        <div className="flex justify-center">
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Submit
           </button>
