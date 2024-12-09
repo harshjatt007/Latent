@@ -15,7 +15,7 @@ import Signup from './pages/auth/signup.js';
 import GoogleAuthRedirect from './GoogleAuthRedirect';
 import Dashboard from './pages/Dashboard.js';
 import UserDashboard from "./admindash";
-import Battle from "./components/Battle";
+import Battle from "./pages/Battle.js";
 import FormComponent from "./components/form";
 import Contact from './pages/Contact';
 
