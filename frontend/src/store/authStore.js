@@ -79,26 +79,32 @@ export const useAuthStore = create((set) => ({
   },
 
   checkAuth: async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      set({ isCheckingAuth: false, isAuthenticated: false });
+      return;
+    }
+  
     set({ isCheckingAuth: true });
+  
     try {
       const response = await axios.get(`${API_URL}/check-auth`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Send the token stored in localStorage
+          Authorization: `Bearer ${token}`,
         },
       });
-
+  
       set({
         user: response.data.user || null,
         isAuthenticated: true,
         isCheckingAuth: false,
       });
     } catch (error) {
-      const errorMessage = handleError(error);
       set({
-        error: errorMessage,
+        error: handleError(error),
         isCheckingAuth: false,
         isAuthenticated: false,
       });
     }
-  },
+  }  
 }));
