@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Flip container styles */
+.relative {
+    perspective: 1000px; /* Provides the 3D perspective for the flip effect */
+  }
+  
+  .flex {
+    transform-style: preserve-3d; /* Ensures both sections remain in the 3D space */
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg); /* Rotates the container to simulate flipping */
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden; /* Hides the back side during rotation */
+  }
+  
