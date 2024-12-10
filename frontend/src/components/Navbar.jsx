@@ -89,7 +89,7 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               <img
-                src={user.avatar}
+                src="https://avatar.iran.liara.run/public"
                 alt="Profile"
                 className="relative inline-block h-12 w-12 cursor-pointer rounded-full object-cover"
                 onClick={() => setIsProfileMenuOpen((prev) => !prev)}

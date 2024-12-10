@@ -1,6 +1,10 @@
 import React, { useState } from "react";
+import { useAuthStore } from '../store/authStore';
+import { useNavigate } from "react-router-dom";
+
 
 const FormComponent = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -9,6 +13,8 @@ const FormComponent = () => {
     video: null,
     aboutPoints: [],
   });
+  const { isAuthenticated, logout, user } = useAuthStore();
+
 
   const [aboutInput, setAboutInput] = useState("");
   const [videoPreview, setVideoPreview] = useState("");
@@ -56,35 +62,66 @@ const FormComponent = () => {
   
     console.log("Token:", token);
   
-    const submissionData = new FormData();
-    submissionData.append("name", formData.name);
-    submissionData.append("address", formData.address);
-    submissionData.append("age", formData.age);
-    submissionData.append("rating", formData.rating);
-    submissionData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
-    submissionData.append("video", formData.video);    
+    // const submissionData = new FormData();
+    // submissionData.append("name", formData.name);
+    // submissionData.append("address", formData.address);
+    // submissionData.append("age", formData.age);
+    // submissionData.append("rating", formData.rating);
+    // submissionData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
+    // submissionData.append("video", formData.video);    
   
     try {
-      console.log("Sending data:", submissionData);
+      //console.log("Sending data:", submissionData);
   
-      const response = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: submissionData,
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // const response = await fetch("http://localhost:5000/api/upload", {
+      //   method: "POST",
+      //   body: submissionData,
+      //   headers: {
+      //     "Authorization": `Bearer ${token}`,
+      //   },
+      // });
   
-      if (!response.ok) throw new Error("Error submitting form");
+     // if (!response.ok) throw new Error("Error submitting form");
   
-      const result = await response.json();
-      console.log(result);
+      //const result = await response.json();
+      //console.log(result);
+      await handlesubmit2(e);
       alert("Form submitted successfully!");
+      navigate("/Dashboard");
     } catch (error) {
       console.error("Submission Error:", error);
       alert("Error submitting form");
     }
   };
+
+
+async function handlesubmit2(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('uploadfile');
+    const file = fileInput.files[0];
+    console.log(file);
+    if (file) {
+    const fData = new FormData();
+    fData.append('uploadfile', file);
+    fData.append("name", user.firstName);
+    fData.append("address", formData.address);
+    fData.append("age", formData.age);
+    fData.append("rating", formData.rating);
+    fData.append("aboutPoints", JSON.stringify(formData.aboutPoints));            
+    try {
+        const uploadResponse = await fetch(`http://localhost:5000/fileupload`, {
+                    method: 'POST',
+                    body: fData
+          });
+
+            const data = await uploadResponse.json();
+            console.log(data);
+
+            } catch (error) {
+                console.error("Error during file upload:", error);
+        }
+    }
+  }
 
   const isFormValid = () => {
     return (
@@ -99,7 +136,7 @@ const FormComponent = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
+      <form encType="multipart/form-data"
         onSubmit={handleSubmit}
         className="bg-white shadow-lg rounded-xl px-8 pt-6 pb-8 w-full max-w-2xl my-10 space-y-6"
       >
@@ -179,25 +216,23 @@ const FormComponent = () => {
         {/* Video Upload */}
         <div>
           <label className="block text-gray-700 font-bold mb-2">Upload Video</label>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            accept="video/*"
-            required
-            className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          
           {videoPreview && (
             <div className="mt-4">
               <video controls src={videoPreview} className="w-full h-64"></video>
             </div>
           )}
         </div>
-
+        {/* <form encType="multipart/form-data" className="uploadform"> */}
+                    <input type="file" name="uploadfile" id="uploadfile" />
+                    {/* <button type="submit" onClick={(e)=>handlesubmit2(e)}>Upload</button> */}
+      {/* </form> */}
         <div className="flex justify-center gap-5">
           <div
             onClick={handlePayment}
             className="px-6 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
+          
             Pay Now
           </div>
           <button
@@ -208,6 +243,10 @@ const FormComponent = () => {
           </button>
         </div>
       </form>
+
+      
+
+
     </div>
   );
 };

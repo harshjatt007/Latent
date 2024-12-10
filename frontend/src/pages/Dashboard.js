@@ -163,21 +163,43 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, VideoIcon, Star, Award, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [userVideo, setUserVideo] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [VidSrc,setVid] = useState({});
   const [competitionStats, setCompetitionStats] = useState({
     totalParticipants: 25,
     topRatedVideo: 4.7,
     myCurrentRanking: 8
   });
 
+  const { isAuthenticated, logout, user } = useAuthStore();
+
   const handleBackClick = () => {
     navigate('/');
   };
+
+  async function getVideo(){
+    try{
+      console.log(user);
+      const response = await axios.post(`http://localhost:5000/getVid`,{
+        username : user.firstName
+      })
+      setVid(response.data);
+    }catch(e){
+      console.log(e);
+    }
+
+  }
+
+  useEffect(()=>{
+    getVideo();
+  },[])
 
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
@@ -258,7 +280,7 @@ const UserDashboard = () => {
       </motion.section>
 
       {/* Video Upload Section */}
-      <motion.section
+      {/* <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -322,9 +344,12 @@ const UserDashboard = () => {
             </div>
           </div>
         )}
-      </motion.section>
-
-      {/* Performance Ratings */}
+      </motion.section> */}
+      <p className='font-bold text-[30px]'>Your Video</p>
+      <div className='flex flex-col justify-center items-center'>
+        <video src={VidSrc} controls className='w-[60%]'></video>
+        </div>
+        {/* Performance Ratings */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

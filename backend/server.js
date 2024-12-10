@@ -12,6 +12,10 @@ const app = express();
 const cors = require('cors');
 const User = require('./models/User');
 
+const multer = require("multer");
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
+
 const corsOptions = {
   origin: 'http://localhost:3000', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -38,14 +42,52 @@ app.use(
   })
 );
 
-// Passport initialization
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+      folder: 'uploads',
+      resource_type: 'auto',
+  }
+});
+
+const upload = multer({ storage: storage, limits: { fileSize: 10000000 } });
+
+app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
+  console.log("file:",req.file.path);
+  console.log(req.body);
+  const user = await User.findOne({firstName:req.body.name});
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+ //console.log(user);
+ user.videos.push(req.file.path);
+ //console.log(user);
+ await user.save();
+  res.status(200).json(req.file.path);
+});
+
+app.post('/getVid',async(req,res)=>{
+  const {username} = req.body;
+  console.log(username);
+  const user = await User.findOne({firstName:username}); 
+  console.log(user);
+  if(!user) return res.status(400).send("Error occurred");
+  if(user.videos.length>0) return res.send(user.videos[user.videos.length-1]);
+  return res.status(400).send("Error occurred");
+})
+
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/form', formRoutes);
-app.use('/api/upload', formRoutes);
 
 app.post('/api/updateProfile', async (req, res) => {
   try {

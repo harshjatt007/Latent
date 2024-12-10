@@ -6,12 +6,11 @@ import { useAuthStore } from '../store/authStore';
 const Profile = () => {
   // Initial user details (no avatar update functionality)
   const { isAuthenticated, logout, user } = useAuthStore();
-  console.log(user);
   const initialUserDetails = {
     name: 'Pulkit Garg',
     email: 'pulkitgarg@gmail.com',
     bio: 'A passionate developer who loves coding!',
-    avatar: user.avatar, // Default avatar image URL
+    avatar: "https://avatar.iran.liara.run/public",
   };
 
   // State to manage user details
