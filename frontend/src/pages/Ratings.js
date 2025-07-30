@@ -8,14 +8,14 @@ function Ratings() {
     const [videos, setVideos] = useState([]);
 
     async function postRating(value, vidid) {
-        await axios.post(`http://localhost:5000/rate`, {
+        await axios.post(`https://latent-kk5m.onrender.com/rate`, {
             rating: value,
             videoid: vidid
         })
     }
 
     async function getAllVideos() {
-        const response = await axios.post(`http://localhost:5000/allVideos`);
+        const response = await axios.post(`https://latent-kk5m.onrender.com/allVideos`);
         setVideos(response.data);
         console.log(response.data);
     }

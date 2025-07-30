@@ -5,7 +5,7 @@ import axios from "axios";
 // Enable credentials with axios
 axios.defaults.withCredentials = true;
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "https://latent-kk5m.onrender.com/api/auth";
 
 // Error handling utility
 const handleError = (error) => {

@@ -6,7 +6,9 @@ require('dotenv').config(); // To access the environment variables (Client ID an
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:5000/auth/google/callback' // The redirect URI
+    callbackURL: process.env.NODE_ENV === "production"
+      ? "https://latent-kk5m.onrender.com/auth/google/callback"
+      : "http://localhost:5000/auth/google/callback" // The redirect URI
   },
   (accessToken, refreshToken, profile, done) => {
     // Here, you will have the user's profile (including email, name, etc.)

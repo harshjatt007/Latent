@@ -82,7 +82,7 @@ const FormComponent = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/create-order", {
+      const response = await fetch("https://latent-kk5m.onrender.com/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -262,7 +262,7 @@ const FormComponent = () => {
       fData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
 
       try {
-        const uploadResponse = await fetch("http://localhost:5000/fileupload", {
+        const uploadResponse = await fetch("https://latent-kk5m.onrender.com/fileupload", {
           method: "POST",
           body: fData,
         });

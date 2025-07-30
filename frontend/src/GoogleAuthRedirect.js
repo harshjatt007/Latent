@@ -7,7 +7,7 @@ const GoogleAuthRedirect = () => {
   useEffect(() => {
     // Fetch user data after authentication
     const fetchUserData = async () => {
-      const response = await fetch("http://localhost:5000/auth/google/callback", {
+      const response = await fetch("https://latent-kk5m.onrender.com/auth/google/callback", {
         method: "GET",
         credentials: "include", // Include cookies for session management
       });

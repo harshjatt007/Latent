@@ -187,14 +187,13 @@ const UserDashboard = () => {
   async function getVideo(){
     try{
       console.log(user);
-      const response = await axios.post(`http://localhost:5000/getVid`,{
+      const response = await axios.post(`https://latent-kk5m.onrender.com/getVid`,{
         username : user.firstName
       })
       setVid(response.data);
     }catch(e){
       console.log(e);
     }
-
   }
 
   useEffect(()=>{
