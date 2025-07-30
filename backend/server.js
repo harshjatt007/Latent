@@ -18,10 +18,13 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 
 const corsOptions = {
-  origin: 'http://localhost:3000', // Your frontend URL
+  origin: [
+    'http://localhost:3000',
+    'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Allow credentials (cookies, headers)
+  credentials: true,
 };
 
 // Enable CORS
