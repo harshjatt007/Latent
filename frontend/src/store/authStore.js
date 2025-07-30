@@ -5,7 +5,7 @@ import axios from "axios";
 // Enable credentials with axios
 axios.defaults.withCredentials = true;
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/auth";
+const API_URL = (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000") + "/api/auth";
 
 // Error handling utility
 const handleError = (error) => {
