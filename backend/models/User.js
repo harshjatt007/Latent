@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
+    unique: true
   },
   lastName: {
     type: String,
@@ -31,7 +32,7 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
-  videos:[String]
+  videos: [String]
 });
 
 const User = mongoose.model("User", userSchema);

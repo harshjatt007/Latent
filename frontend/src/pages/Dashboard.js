@@ -247,7 +247,7 @@ const UserDashboard = () => {
       </header>
 
       {/* Competition Overview */}
-      <motion.section
+      {/* <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -277,7 +277,7 @@ const UserDashboard = () => {
             </p>
           </div>
         </div>
-      </motion.section>
+      </motion.section> */}
 
       {/* Video Upload Section */}
       {/* <motion.section
@@ -354,9 +354,9 @@ const UserDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className="bg-[#EBEAFF] shadow-md rounded-lg p-6"
+        //className="bg-[#201f24] shadow-md rounded-lg p-6"
       >
-        <h3 className="text-lg font-bold text-gray-800 mb-4">My Performance Ratings</h3>
+        {/* <h3 className="text-lg font-bold text-gray-800 mb-4">My Performance Ratings</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-2">
@@ -372,7 +372,7 @@ const UserDashboard = () => {
             </div>
             <p className="text-2xl font-bold text-green-600">4.0/5</p>
           </div>
-        </div>
+        </div> */}
       </motion.section>
     </div>
   );

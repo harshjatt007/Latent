@@ -7,9 +7,9 @@ const Profile = () => {
   // Initial user details (no avatar update functionality)
   const { isAuthenticated, logout, user } = useAuthStore();
   const initialUserDetails = {
-    name: 'Pulkit Garg',
-    email: 'pulkitgarg@gmail.com',
-    bio: 'A passionate developer who loves coding!',
+    name: 'Samarth',
+    email: 'sam22@gmail.com',
+    bio: 'Multitalented!',
     avatar: "https://avatar.iran.liara.run/public",
   };
 

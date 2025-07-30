@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import image from '../assets/in.png'; // Replace with the actual image path
+import React, { useEffect, useState, useRef } from "react";
+import image from "../assets/in.png"; // Replace with the actual image path
 
 const Review = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -38,7 +38,7 @@ const Review = () => {
       {/* Left Content */}
       <div
         className={`w-[40%] space-y-6 transform transition-transform duration-1000 ease-out opacity-0 ${
-          isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10'
+          isVisible ? "translate-x-0 opacity-100" : "-translate-x-10"
         }`}
       >
         <h1 className="text-blue-600 font-bold text-3xl md:text-4xl leading-tight">
@@ -48,14 +48,21 @@ const Review = () => {
           Here to take your Social Media to another level
         </h2>
         <p className="text-gray-600 text-base md:text-lg leading-relaxed">
-          I'm a paragraph. Click here to add your own text and edit me. It’s easy. Just click "Edit Text" or double click me to add your own content and make changes to the font. Feel free to drag and drop me anywhere you like on your page. I’m a great place for you to tell a story and let your users know a little more about you.
+          "I am Alice from goa, and I’ve had an amazing experience using *Latent*! The
+          platform is incredibly engaging, offering a unique way to showcase
+          talent and connect with a vibrant community. The voting and prize
+          features add an exciting layer of competition, making every
+          interaction fun and rewarding. Its user-friendly interface and
+          seamless functionality make it a pleasure to navigate. I highly
+          recommend *Latent* to anyone looking to display their skills or simply
+          enjoy discovering incredible talents!"
         </p>
       </div>
 
       {/* Right Image */}
       <div
         className={`w-[50%] mt-8 md:mt-0 transform transition-transform duration-1000 ease-out opacity-0 ${
-          isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10'
+          isVisible ? "translate-x-0 opacity-100" : "translate-x-10"
         }`}
       >
         <img

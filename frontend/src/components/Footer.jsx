@@ -1,102 +1,79 @@
 import React from 'react';
-import { FaFacebookF, FaTwitter, FaGoogle, FaInstagram, FaLinkedin, FaGithub } from 'react-icons/fa';
+import { 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Facebook, 
+  Twitter, 
+  Instagram, 
+  Linkedin 
+} from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="text-center text-lg-start text-white" style={{ backgroundColor: '#1c2331' }}>
-      {/* Social Media Section */}
-      <section className="flex justify-between items-center p-4" style={{ backgroundColor: '#6351ce' }}>
-        <div>
-          <span>Get connected with us on social networks:</span>
-        </div>
-        <div className="flex space-x-4">
-          <a href="https://www.linkedin.com/in/adarsh-kumar-gupta-6b2745186" className="text-white text-lg pr-3" target="_blank" rel="noopener noreferrer ">
-            <FaFacebookF />
-          </a>
-          <a href="https://www.linkedin.com/in/adarsh-kumar-gupta-6b2745186" className="text-white text-lg pr-3" target="_blank" rel="noopener noreferrer">
-            <FaTwitter />
-          </a>
-          <a href="https://www.linkedin.com/in/adarsh-kumar-gupta-6b2745186" className="text-white text-lg pr-3" target="_blank" rel="noopener noreferrer">
-            <FaGoogle />
-          </a>
-          <a href="https://www.linkedin.com/in/adarsh-kumar-gupta-6b2745186" className="text-white text-lg pr-3" target="_blank" rel="noopener noreferrer">
-            <FaInstagram />
-          </a>
-          <a href="https://www.linkedin.com/in/adarsh-kumar-gupta-6b2745186" className="text-white text-lg pr-3" target="_blank" rel="noopener noreferrer">
-            <FaLinkedin />
-          </a>
-          <a href="https://www.linkedin.com/in/adarsh-kumar-gupta-6b2745186" className="text-white text-lg pr-3" target="_blank" rel="noopener noreferrer">
-            <FaGithub />
-          </a>
-        </div>
-      </section>
+    <footer className="bg-gray-900 text-white py-12">
+      <div className="container mx-auto px-4">
+        {/* Contact Section */}
+        <div id="contact" className="grid md:grid-cols-3 gap-8">
+          {/* Contact Information */}
+          <div>
+            <h3 className="text-2xl font-bold mb-4">Contact Us</h3>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <MapPin className="text-purple-500" />
+                <span>Chitkara University, Rajpura, Punjab, 410401</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Mail className="text-purple-500" />
+                <span>adarsh25.10.2002@gmail.com</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Phone className="text-purple-500" />
+                <span>+91 7 643 826 643</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Phone className="text-purple-500" />
+                <span>+91 8 084 123 158</span>
+              </div>
+            </div>
+          </div>
 
-      {/* Links Section */}
-      <div className="container mx-auto px-4 text-center text-md-start mt-5">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Quick Links */}
           <div>
-            <h6 className="uppercase font-bold">Our Company</h6>
-            <hr className="my-4 w-12 mx-auto bg-purple-600 h-1" />
-            <p>
-              We provide high-quality products and services that cater to your unique needs.
-              Our goal is to ensure customer satisfaction through innovation and excellence.
-            </p>
-          </div>
-          <div>
-            <h6 className="uppercase font-bold">Products</h6>
-            <hr className="my-4 w-12 mx-auto bg-purple-600 h-1" />
-            <ul>
-              <li>
-                <a href="/product-1" className="text-white">Product One</a>
-              </li>
-              <li>
-                <a href="/product-2" className="text-white">Product Two</a>
-              </li>
-              <li>
-                <a href="/product-3" className="text-white">Product Three</a>
-              </li>
-              <li>
-                <a href="/product-4" className="text-white">Product Four</a>
-              </li>
+            <h3 className="text-2xl font-bold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li><a href="#" className="hover:text-purple-500">About Us</a></li>
+              <li><a href="#" className="hover:text-purple-500">How It Works</a></li>
+              <li><a href="#" className="hover:text-purple-500">FAQ</a></li>
+              <li><a href="#" className="hover:text-purple-500">Terms of Service</a></li>
             </ul>
           </div>
+
+          {/* Social Media */}
           <div>
-            <h6 className="uppercase font-bold">Useful Links</h6>
-            <hr className="my-4 w-12 mx-auto bg-purple-600 h-1" />
-            <ul>
-              <li>
-                <a href="/account" className="text-white">Your Account</a>
-              </li>
-              <li>
-                <a href="/affiliate" className="text-white">Become an Affiliate</a>
-              </li>
-              <li>
-                <a href="/shipping" className="text-white">Shipping Rates</a>
-              </li>
-              <li>
-                <a href="/help" className="text-white">Help Center</a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h6 className="uppercase font-bold">Contact Us</h6>
-            <hr className="my-4 w-12 mx-auto bg-purple-600 h-1" />
-            <ul>
-              <li>Chitkara University, Rajpura, Punjab, 410401</li>
-              <li>adarsh25.10.2002@gmail.com</li>
-              <li>+91 7 643 826 643</li>
-              <li>+91 8 084 123 158</li>
-            </ul>
+            <h3 className="text-2xl font-bold mb-4">Connect With Us</h3>
+            {/* Social Media Icons */}
+            <div className="flex space-x-4 mt-4">
+              <a href="https://facebook.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
+                <Facebook size={24} />
+              </a>
+              <a href="https://twitter.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
+                <Twitter size={24} />
+              </a>
+              <a href="https://instagram.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
+                <Instagram size={24} />
+              </a>
+              <a href="https://linkedin.com/in/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
+                <Linkedin size={24} />
+              </a>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Copyright */}
-      <div className="text-center p-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
-        © 2024 All Rights Reserved:
-        <a className="text-white ml-1" href="https://yourcompany.com" target="_blank" rel="noopener noreferrer">
-          Latent.com
-        </a>
+        {/* Copyright */}
+        <div className="text-center mt-8 pt-4 border-t border-gray-800">
+          <p>&copy; 2024 Latent. All Rights Reserved.</p>
+        </div>
       </div>
     </footer>
   );

@@ -4,6 +4,7 @@ import { Link as ScrollLink } from 'react-scroll';
 import { motion } from 'framer-motion';
 import logo from '../assets/logo.png';
 import { useAuthStore } from '../store/authStore';
+import { Link } from 'react-router-dom'
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -106,6 +107,7 @@ const Navbar = () => {
                   <a href="/dashboard">
                     <button className="menu-item">Dashboard</button>
                   </a>
+                  <Link to={'/ratings'}>Rating</Link>
                   <hr className="my-2" />
                   <button
                     onClick={() => {

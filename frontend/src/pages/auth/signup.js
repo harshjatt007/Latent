@@ -26,18 +26,33 @@ const Signup = () => {
     confirmPassword: "",
   });
 
-  // Field validation functions
+  // Helper: Capitalize the first letter of each word
+  const capitalizeWords = (value) => {
+    return value
+      .split(" ")
+      .map(
+        (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join(" ");
+  };
+
+  // Validation rules
   const validateField = (field, value) => {
     let message = "";
     if (!value) {
       message = `${field} is required`;
-    } else if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      message = "Please enter a valid email address";
-    } else if (
-      ["firstName", "lastName"].includes(field) &&
-      !/^[a-zA-Z]+$/.test(value)
-    ) {
-      message = "Only letters are allowed";
+    } else if (field === "email") {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|yahoo\.com)$/i;
+      if (!emailRegex.test(value)) {
+        message = "Please enter a valid email with @gmail.com, @hotmail.com, or @yahoo.com domain";
+      }
+    }
+     else if (["firstName", "lastName"].includes(field)) {
+      if (!/^[a-zA-Z ]+$/.test(value)) {
+        message = "Only English letters and spaces are allowed";
+      } else {
+        setFormData((prev) => ({ ...prev, [field]: capitalizeWords(value) }));
+      }
     } else if (field === "password" && value.length < 6) {
       message = "Password must be at least 6 characters";
     } else if (field === "confirmPassword" && value !== password) {

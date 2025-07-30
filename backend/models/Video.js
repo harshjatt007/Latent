@@ -22,14 +22,8 @@ const VideoSchema = new mongoose.Schema({
     required: true,
   },
   aboutPoints: {
-    type: [String],
-    required: true,
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+    type: [Number],
+  }
 });
 
 module.exports = mongoose.model("Video", VideoSchema);

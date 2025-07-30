@@ -19,6 +19,7 @@ import UserDashboard from "./admindash";
 import Battle from "./pages/Battle.js";
 import FormComponent from "./components/form";
 import Contact from './pages/Contact';
+import Ratings from "./pages/Ratings";
 
 import VideoPlayer from "./pages/VideoPlayer.js";
 
@@ -88,13 +89,13 @@ function App() {
         <Route
           path="/profile"
           element={
-              <Profile />
+            <Profile />
           }
         />
         <Route
           path="/admin-dash"
           element={
-              <UserDashboard />
+            <UserDashboard />
           }
         />
 
@@ -102,6 +103,7 @@ function App() {
         <Route path="/battle" element={<Battle />} />
         <Route path="/form" element={<FormComponent />} />
         <Route path="/video/:filename" element={<VideoPlayer />} />
+        <Route path="/ratings" element={<Ratings />} />
 
         {/* Contact Page */}
         <Route path="/contact" element={<Contact />} />
