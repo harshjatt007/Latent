@@ -32,7 +32,7 @@ const Profile = () => {
   const handleSave = async () => {
     setIsEditing(false);
     // Send the updated user details to the backend (example API call)
-    const response = await fetch('/api/updateProfile', {
+    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/updateProfile`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
