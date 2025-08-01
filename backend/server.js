@@ -17,11 +17,23 @@ const multer = require("multer");
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
+  'https://latent-delta.vercel.app',
+  'https://latent-kk5m.onrender.com'
+];
+
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
