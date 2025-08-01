@@ -4,18 +4,34 @@ import { useAuthStore } from '../store/authStore';
 
 
 const Profile = () => {
-  // Initial user details (no avatar update functionality)
+  // Get user data from auth store
   const { isAuthenticated, logout, user } = useAuthStore();
+  
+  // Initialize user details from auth store user data
   const initialUserDetails = {
-    name: 'Samarth',
-    email: 'sam22@gmail.com',
-    bio: 'Multitalented!',
-    avatar: "https://avatar.iran.liara.run/public",
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    bio: user?.bio || '',
+    avatar: user?.avatar || "https://avatar.iran.liara.run/public",
   };
 
   // State to manage user details
   const [userDetails, setUserDetails] = useState(initialUserDetails);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Update userDetails when user data changes
+  React.useEffect(() => {
+    if (user) {
+      setUserDetails({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        avatar: user.avatar || "https://avatar.iran.liara.run/public",
+      });
+    }
+  }, [user]);
 
   // Handle changes to user details
   const handleChange = (e) => {
@@ -30,18 +46,30 @@ const Profile = () => {
 
   // Save the changes
   const handleSave = async () => {
-    setIsEditing(false);
-    // Send the updated user details to the backend (example API call)
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/updateProfile`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userDetails),
-    });
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000'}/api/auth/updateProfile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(userDetails),
+      });
 
-    const data = await response.json();
-    console.log('User details saved:', data);
+      const data = await response.json();
+      
+      if (response.ok) {
+        console.log('User details saved:', data);
+        alert('Profile updated successfully!');
+        setIsEditing(false);
+      } else {
+        alert(data.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Error updating profile');
+    }
   };
 
   return (
@@ -62,19 +90,35 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Name Field */}
+          {/* First Name Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700">First Name</label>
             {isEditing ? (
               <input
                 type="text"
-                name="name"
-                value={userDetails.name}
+                name="firstName"
+                value={userDetails.firstName}
                 onChange={handleChange}
                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
               />
             ) : (
-              <p className="mt-1 text-gray-900">{userDetails.name}</p>
+              <p className="mt-1 text-gray-900">{userDetails.firstName}</p>
+            )}
+          </div>
+
+          {/* Last Name Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            {isEditing ? (
+              <input
+                type="text"
+                name="lastName"
+                value={userDetails.lastName}
+                onChange={handleChange}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              />
+            ) : (
+              <p className="mt-1 text-gray-900">{userDetails.lastName}</p>
             )}
           </div>
 

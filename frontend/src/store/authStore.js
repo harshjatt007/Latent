@@ -7,6 +7,8 @@ axios.defaults.withCredentials = true;
 
 const API_URL = (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000") + "/api/auth";
 
+console.log("API_URL configured as:", API_URL);
+
 // Error handling utility
 const handleError = (error) => {
   if (axios.isAxiosError(error)) {
@@ -30,6 +32,7 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
 
         try {
+          console.log("Attempting signup with:", { email, firstName, lastName, role });
           const response = await axios.post(`${API_URL}/signup`, {
             email,
             password,
@@ -41,7 +44,9 @@ export const useAuthStore = create(
           console.log("Signup response:", response.data); // Debugging response data
 
           // Save token and update store
-          localStorage.setItem("token", response.data.token);
+          if (response.data.token) {
+            localStorage.setItem("token", response.data.token);
+          }
           set({
             user: response.data.user,
             isAuthenticated: true,
@@ -53,6 +58,7 @@ export const useAuthStore = create(
         } catch (error) {
           const errorMessage = handleError(error);
           console.error("Signup error:", errorMessage); // Debugging error
+          console.error("Signup error details:", error.response?.data); // More detailed error
           set({ error: errorMessage, isLoading: false });
           throw new Error(errorMessage);
         }
@@ -63,6 +69,7 @@ export const useAuthStore = create(
         set({ isLoading: true, error: null });
 
         try {
+          console.log("Attempting login with:", { email });
           const response = await axios.post(`${API_URL}/login`, {
             email,
             password,
@@ -86,6 +93,7 @@ export const useAuthStore = create(
         } catch (error) {
           const errorMessage = handleError(error);
           console.error("Login error:", errorMessage); // Debugging error
+          console.error("Login error details:", error.response?.data); // More detailed error
           set({ error: errorMessage, isLoading: false });
           throw new Error(errorMessage);
         }
