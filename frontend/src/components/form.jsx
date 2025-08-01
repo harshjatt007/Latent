@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS, API_BASE_URL } from "../config/api";
 
 const FormComponent = () => {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ const FormComponent = () => {
         key: "rzp_test_jX0Zhni0nTh4Wp", // Replace with your Razorpay key ID
         amount: data.amount,
         currency: "INR",
-        name: "Your Company Name",
+        name: "Latent",
         description: "Payment for Video Upload",
         order_id: data.id,
         handler: function (response) {
@@ -262,14 +263,96 @@ const FormComponent = () => {
       fData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
 
       try {
-        const uploadResponse = await fetch("https://latent-kk5m.onrender.com/fileupload", {
+        console.log("Uploading to:", API_ENDPOINTS.fileUpload);
+        console.log("Form data:", {
+          name: formData.name,
+          address: formData.address,
+          age: formData.age,
+          rating: formData.rating,
+          aboutPoints: formData.aboutPoints
+        });
+        
+        // Test if backend is accessible
+        try {
+          const healthCheck = await fetch(`${API_BASE_URL}/`, {
+            method: 'GET',
+          });
+          console.log("Backend health check status:", healthCheck.status);
+        } catch (healthError) {
+          console.warn("Backend health check failed:", healthError);
+        }
+        
+        // Temporary workaround: Try to create a user first if the upload fails
+        let uploadResponse = await fetch(API_ENDPOINTS.fileUpload, {
           method: "POST",
           body: fData,
         });
 
+        console.log("Response status:", uploadResponse.status);
+        console.log("Response headers:", uploadResponse.headers);
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error("Error response:", errorText);
+          
+          // Try to parse the error as JSON
+          let errorMessage = `HTTP error! status: ${uploadResponse.status}`;
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.error && errorJson.error.includes("User not found")) {
+              // Try to create a user first, then upload again
+              console.log("User not found, attempting to create user...");
+              
+              // Create a simple user with the form name
+              const userData = {
+                firstName: formData.name,
+                lastName: "User",
+                email: `${formData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
+                password: "tempPassword123"
+              };
+              
+              try {
+                const userResponse = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(userData),
+                });
+                
+                if (userResponse.ok) {
+                  console.log("User created successfully, retrying upload...");
+                  // Retry the upload
+                  uploadResponse = await fetch(API_ENDPOINTS.fileUpload, {
+                    method: "POST",
+                    body: fData,
+                  });
+                }
+              } catch (userError) {
+                console.error("Failed to create user:", userError);
+              }
+            }
+            
+            if (errorJson.error) {
+              errorMessage = errorJson.error;
+            }
+          } catch (e) {
+            errorMessage += ` - ${errorText}`;
+          }
+          
+          if (!uploadResponse.ok) {
+            throw new Error(errorMessage);
+          }
+        }
+
         const data = await uploadResponse.json();
-        console.log(data);
-        return data;
+        console.log("Upload response:", data);
+        
+        if (data.success) {
+          return data;
+        } else {
+          throw new Error(data.error || 'Upload failed');
+        }
       } catch (error) {
         console.error("Error during file upload:", error);
         throw error;
@@ -290,12 +373,21 @@ const FormComponent = () => {
     }
 
     try {
-      await handlesubmit2(e);
-      alert("Form submitted successfully!");
+      const result = await handlesubmit2(e);
+      alert("Form submitted successfully! Your video has been uploaded.");
+      // Reset form after successful submission
+      setFormData({
+        name: "",
+        age: "",
+        rating: "",
+        address: "",
+        aboutPoints: [],
+        video: null,
+      });
       navigate("/Dashboard");
     } catch (error) {
       console.error("Submission Error:", error);
-      alert("Error submitting form");
+      alert(`Error submitting form: ${error.message}`);
     }
   };
 

@@ -19,6 +19,8 @@ const cloudinary = require('cloudinary').v2;
 
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
   'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
   'https://latent-delta.vercel.app',
   'https://latent-kk5m.onrender.com'
@@ -26,11 +28,14 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log("CORS origin check:", origin);
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    const allowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
+    if (allowed) {
       callback(null, true);
     } else {
+      console.error("CORS origin rejected:", origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -73,32 +78,62 @@ const storage = new CloudinaryStorage({
   }
 });
 
-const upload = multer({ storage: storage, limits: { fileSize: 10000000 } });
-
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10000000 },
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/\.(mp4|mkv|avi)$/)) {
+      return cb(new Error('Only video files are allowed!'));
+    }
+    cb(null, true);
+  }
+});
 app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
   console.log("file:", req.file.path);
   console.log(req.body);
-  const user = await User.findOne({ firstName: req.body.name });
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+  
+  // Create video entry regardless of user existence
+  let aboutPoints = [];
+  try {
+    aboutPoints = JSON.parse(req.body.aboutPoints);
+  } catch (error) {
+    console.error("Error parsing aboutPoints:", error);
+    aboutPoints = [];
   }
-  user.videos.push(req.file.path);
-  await user.save();
-  const video = new Video({
-    name: req.body.name,
-    videoUrl: req.file.path,
-    address: req.body.address,
-    age: parseInt(req.body.age),
-    rating: parseInt(req.body.rating)
-  })
-  await video.save();
-  res.status(200).json(req.file.path);
+
+  try {
+    const video = new Video({
+      name: req.body.name,
+      videoUrl: req.file.path,
+      address: req.body.address,
+      age: parseInt(req.body.age),
+      rating: parseInt(req.body.rating),
+      aboutPoints: aboutPoints
+    });
+    await video.save();
+    
+    // Don't require user to exist - just create the video
+    console.log("Video saved successfully:", video._id);
+    
+    res.status(200).json({ 
+      success: true, 
+      message: 'Video uploaded successfully',
+      videoPath: req.file.path,
+      videoId: video._id
+    });
+  } catch (error) {
+    console.error("Error saving video:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error saving video: ' + error.message
+    });
+  }
 });
 
-app.post('/allVideos', (async (req, res) => {
-  const videos = await Video.find({});
+app.post('/allVideos', async (req, res) => {
+  const videos = await Video.find({}).populate('aboutPoints').select('name videoUrl aboutPoints rating');
   res.status(200).send(videos);
-}))
+});
 
 app.post('/rate', async (req, res) => {
   const { videoid, rating } = req.body;
