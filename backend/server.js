@@ -137,7 +137,7 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
 
 app.post('/allVideos', async (req, res) => {
   try {
-    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings comments');
     res.status(200).send(videos);
   } catch (error) {
     console.error("Error fetching videos:", error);
@@ -152,6 +152,12 @@ app.post('/rate', async (req, res) => {
     // Check if user is authenticated
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required to rate videos' });
+    }
+
+    // Validate rating is between 1 and 5
+    const numRating = parseInt(rating);
+    if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
     }
 
     // Find the user
@@ -170,13 +176,75 @@ app.post('/rate', async (req, res) => {
       return res.status(404).json({ error: 'Video not found' });
     }
     
-    // Add rating to the aboutPoints array (since that's where ratings are being saved)
-    video.aboutPoints.push(parseInt(rating));
+    // Initialize ratedBy array if it doesn't exist
+    if (!video.ratedBy) {
+      video.ratedBy = [];
+    }
+    
+    // Check if user has already rated this video
+    const existingRatingIndex = video.ratedBy.findIndex(r => r.userId && r.userId.toString() === userId);
+    
+    if (existingRatingIndex !== -1) {
+      // Update existing rating
+      video.ratings[existingRatingIndex] = numRating;
+      video.ratedBy[existingRatingIndex].rating = numRating;
+    } else {
+      // Add new rating
+      video.ratings.push(numRating);
+      video.ratedBy.push({ userId, rating: numRating });
+    }
+    
     await video.save();
-    res.status(200).json({ message: 'Rating added' });
+    res.status(200).json({ message: 'Rating added successfully' });
   } catch (error) {
     console.error("Error adding rating:", error);
     res.status(500).json({ error: 'Error adding rating' });
+  }
+})
+
+// Add comment endpoint
+app.post('/comment', async (req, res) => {
+  const { videoid, comment, userId } = req.body;
+  
+  try {
+    // Check if user is authenticated
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required to comment' });
+    }
+
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ error: 'Comment cannot be empty' });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if user has audience role
+    if (user.role !== 'audience' && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only audience members can comment on videos' });
+    }
+
+    const video = await Video.findById(videoid);
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    // Add comment
+    video.comments.push({
+      userId,
+      userName: `${user.firstName} ${user.lastName}`,
+      comment: comment.trim()
+    });
+    
+    await video.save();
+    res.status(200).json({ message: 'Comment added successfully' });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ error: 'Error adding comment' });
   }
 })
 
@@ -190,15 +258,40 @@ app.post('/getVid', async (req, res) => {
   return res.status(400).send("Error occurred");
 })
 
+// Admin delete video endpoint
+app.delete('/admin/video/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminId } = req.body;
+
+    // Verify admin
+    const admin = await User.findById(adminId);
+    if (!admin || admin.email !== 'abhishek1161.be22@chitkara.edu.in') {
+      return res.status(403).json({ error: 'Access denied. Admin only.' });
+    }
+
+    // Delete video
+    const deletedVideo = await Video.findByIdAndDelete(id);
+    if (!deletedVideo) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    res.status(200).json({ message: 'Video deleted successfully' });
+  } catch (error) {
+    console.error("Error deleting video:", error);
+    res.status(500).json({ error: 'Error deleting video' });
+  }
+})
+
 app.post('/getRankings', async (req, res) => {
   try {
-    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address');
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
     
     // Calculate average ratings and create rankings
     const rankedVideos = videos.map(video => {
-      const ratings = video.aboutPoints || [];
+      const ratings = video.ratings || [];
       const averageRating = ratings.length > 0 
-        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+        ? Math.min(5, (ratings.reduce((a, b) => a + b, 0) / ratings.length)).toFixed(1)
         : 0;
       
       return {

@@ -16,6 +16,7 @@ import Signup from './pages/auth/signup.js';
 import GoogleAuthRedirect from './GoogleAuthRedirect';
 import Dashboard from './pages/Dashboard.js';
 import UserDashboard from "./admindash";
+import AdminDashboard from "./pages/AdminDashboard";
 import Battle from "./pages/Battle.js";
 import FormComponent from "./components/form";
 import Contact from './pages/Contact';
@@ -95,7 +96,7 @@ function App() {
         <Route
           path="/admin-dash"
           element={
-            <UserDashboard />
+            <AdminDashboard />
           }
         />
 

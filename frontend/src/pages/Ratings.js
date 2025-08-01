@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/authStore';
 function Ratings() {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [comments, setComments] = useState({});
     const { user, isAuthenticated } = useAuthStore();
 
     async function postRating(value, vidid) {
@@ -57,6 +58,44 @@ function Ratings() {
         }
     }
 
+    async function postComment(videoId, comment) {
+        if (!isAuthenticated || !user) {
+            alert("Please sign in to comment");
+            return;
+        }
+
+        if (user.role !== 'audience' && user.role !== 'admin') {
+            alert("Only audience members can comment on videos. Please contact admin to change your role.");
+            return;
+        }
+
+        if (!comment.trim()) {
+            alert("Comment cannot be empty");
+            return;
+        }
+
+        try {
+            await axios.post(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000'}/comment`, {
+                videoid: videoId,
+                comment: comment.trim(),
+                userId: user.id
+            });
+            
+            // Clear comment input
+            setComments(prev => ({ ...prev, [videoId]: '' }));
+            
+            // Refresh videos to show new comment
+            getAllVideos();
+        } catch (error) {
+            console.error("Error posting comment:", error);
+            if (error.response?.data?.error) {
+                alert(error.response.data.error);
+            } else {
+                alert("Error posting comment. Please try again.");
+            }
+        }
+    }
+
     async function getAllVideos() {
         try {
             setLoading(true);
@@ -79,7 +118,8 @@ function Ratings() {
     function calculateAvg(arr) {
         if (!arr || arr.length === 0) return 0;
         const sum = arr.reduce((a, b) => a + b, 0);
-        return (sum / arr.length).toFixed(1);
+        const average = sum / arr.length;
+        return Math.min(5, average).toFixed(1);
     }
 
     const renderVideos = videos.map((vid, index) => {
@@ -98,7 +138,7 @@ function Ratings() {
                     </div>
                     <div className='flex justify-center space-x-8 mt-4'>
                         <p className='text-sm'>Self Rating: <span className='font-bold text-blue-600'>{vid.rating} ⭐</span></p>
-                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.aboutPoints || [])} ⭐</span></p>
+                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.ratings || [])} ⭐</span></p>
                     </div>
                     {/* Display about points if they exist */}
                     {vid.aboutPoints && vid.aboutPoints.length > 0 && (
@@ -113,6 +153,60 @@ function Ratings() {
                             </div>
                         </div>
                     )}
+
+                    {/* Comments Section */}
+                    <div className='mt-6 border-t pt-4'>
+                        <h4 className='text-sm font-semibold text-gray-700 mb-3'>Comments</h4>
+                        
+                        {/* Existing Comments */}
+                        {vid.comments && vid.comments.length > 0 ? (
+                            <div className='mb-4 max-h-40 overflow-y-auto'>
+                                {vid.comments.map((comment, idx) => (
+                                    <div key={idx} className='mb-2 p-2 bg-gray-50 rounded text-left'>
+                                        <div className='text-xs font-medium text-blue-600'>{comment.userName}</div>
+                                        <div className='text-sm text-gray-700'>{comment.comment}</div>
+                                        <div className='text-xs text-gray-500'>
+                                            {new Date(comment.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className='text-sm text-gray-500 mb-4'>No comments yet. Be the first to comment!</p>
+                        )}
+
+                        {/* Add Comment */}
+                        {isAuthenticated && (user?.role === 'audience' || user?.role === 'admin') && (
+                            <div className='flex gap-2'>
+                                <input
+                                    type='text'
+                                    placeholder='Write a comment...'
+                                    value={comments[vid._id] || ''}
+                                    onChange={(e) => setComments(prev => ({ ...prev, [vid._id]: e.target.value }))}
+                                    className='flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm'
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            postComment(vid._id, comments[vid._id] || '');
+                                        }
+                                    }}
+                                />
+                                <button
+                                    onClick={() => postComment(vid._id, comments[vid._id] || '')}
+                                    className='px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700'
+                                >
+                                    Comment
+                                </button>
+                            </div>
+                        )}
+                        
+                        {!isAuthenticated && (
+                            <p className='text-sm text-gray-500'>Please sign in to comment</p>
+                        )}
+                        
+                        {isAuthenticated && user?.role === 'participant' && (
+                            <p className='text-sm text-gray-500'>Only audience members can comment</p>
+                        )}
+                    </div>
                 </div>
             </div>
         );

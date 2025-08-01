@@ -20,6 +20,25 @@ const UserDashboard = () => {
 
   const { isAuthenticated, logout, user } = useAuthStore();
 
+  // Redirect based on user role
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    // Redirect admin to admin dashboard
+    if (user?.email === 'abhishek1161.be22@chitkara.edu.in') {
+      navigate('/admin-dash');
+      return;
+    }
+    
+    // Check if user role is approved
+    if (user?.roleStatus === 'pending') {
+      alert('Your role request is pending approval. You have limited access until approved.');
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const handleBackClick = () => {
     navigate('/');
   };

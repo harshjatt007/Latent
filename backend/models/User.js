@@ -31,6 +31,16 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "audience", "participant"],
     default: "participant",
   },
+  roleStatus: {
+    type: String,
+    enum: ["approved", "pending", "rejected"],
+    default: "approved",
+  },
+  requestedRole: {
+    type: String,
+    enum: ["admin", "audience", "participant"],
+    default: null,
+  },
   videos: [String]
 });
 

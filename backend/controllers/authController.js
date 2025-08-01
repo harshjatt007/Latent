@@ -19,6 +19,18 @@ exports.signup = async (req, res) => {
 
     const randomNumber = Math.floor(Math.random() * 100) + 1;
 
+    // Check if user is trying to register as admin
+    let userRole = role || 'participant';
+    let roleStatus = 'approved';
+    let requestedRole = null;
+
+    // Only the specific admin email can be admin directly
+    if (role === 'admin' && email !== 'abhishek1161.be22@chitkara.edu.in') {
+      userRole = 'participant'; // Set as participant temporarily
+      roleStatus = 'pending'; // Needs approval
+      requestedRole = 'admin'; // Store the requested role
+    }
+
     // Create a new user
     const newUser = new User({
       firstName,
@@ -26,7 +38,9 @@ exports.signup = async (req, res) => {
       email,
       password: hashedPassword,
       avatar: `https://avatar.iran.liara.run/public/${randomNumber}`,
-      role: role || 'participant' // Default to participant if no role specified
+      role: userRole,
+      roleStatus,
+      requestedRole
     });
 
     // Save to database
@@ -39,8 +53,13 @@ exports.signup = async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    let message = 'User registered successfully';
+    if (requestedRole === 'admin') {
+      message = 'Registration successful! Your admin role request is pending approval from the main administrator.';
+    }
+
     res.status(201).json({ 
-      message: 'User registered successfully',
+      message,
       token,
       user: {
         id: newUser._id,
@@ -48,6 +67,8 @@ exports.signup = async (req, res) => {
         lastName: newUser.lastName,
         email: newUser.email,
         role: newUser.role,
+        roleStatus: newUser.roleStatus,
+        requestedRole: newUser.requestedRole,
         avatar: newUser.avatar,
         bio: newUser.bio,
       }
@@ -91,6 +112,8 @@ exports.signin = async (req, res) => {
         lastName: existingUser.lastName,
         email: existingUser.email,
         role: existingUser.role,
+        roleStatus: existingUser.roleStatus,
+        requestedRole: existingUser.requestedRole,
         avatar: existingUser.avatar,
         bio: existingUser.bio,
       },
@@ -115,6 +138,8 @@ exports.checkAuth = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        roleStatus: user.roleStatus,
+        requestedRole: user.requestedRole,
         avatar: user.avatar,
         bio: user.bio,
       }
@@ -154,12 +179,77 @@ exports.updateProfile = async (req, res) => {
         lastName: updatedUser.lastName,
         email: updatedUser.email,
         role: updatedUser.role,
+        roleStatus: updatedUser.roleStatus,
+        requestedRole: updatedUser.requestedRole,
         avatar: updatedUser.avatar,
         bio: updatedUser.bio,
       }
     });
   } catch (error) {
     console.error('Error during profile update:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Admin functions
+exports.getPendingRoleRequests = async (req, res) => {
+  try {
+    // Check if user is admin
+    const adminUser = await User.findById(req.user.id);
+    if (!adminUser || adminUser.email !== 'abhishek1161.be22@chitkara.edu.in') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    const pendingRequests = await User.find({ 
+      roleStatus: 'pending' 
+    }).select('firstName lastName email requestedRole createdAt');
+
+    res.status(200).json({ requests: pendingRequests });
+  } catch (error) {
+    console.error('Error fetching pending requests:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.approveRoleRequest = async (req, res) => {
+  try {
+    const { userId, approve } = req.body;
+    
+    // Check if user is admin
+    const adminUser = await User.findById(req.user.id);
+    if (!adminUser || adminUser.email !== 'abhishek1161.be22@chitkara.edu.in') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (approve) {
+      user.role = user.requestedRole;
+      user.roleStatus = 'approved';
+      user.requestedRole = null;
+    } else {
+      user.roleStatus = 'rejected';
+      user.requestedRole = null;
+    }
+
+    await user.save();
+
+    res.status(200).json({ 
+      message: `Role request ${approve ? 'approved' : 'rejected'} successfully`,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        roleStatus: user.roleStatus,
+      }
+    });
+  } catch (error) {
+    console.error('Error processing role request:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

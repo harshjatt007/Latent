@@ -7,6 +7,29 @@ const FormComponent = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuthStore();
 
+  // Check if user can access form
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      alert('Please sign in to submit a form');
+      navigate('/login');
+      return;
+    }
+
+    // Only participants can submit forms
+    if (user?.role !== 'participant') {
+      alert('Only participants can submit forms. Please contact admin to change your role.');
+      navigate('/');
+      return;
+    }
+
+    // Check if role is approved
+    if (user?.roleStatus === 'pending') {
+      alert('Your role request is pending approval. You cannot submit forms until approved.');
+      navigate('/');
+      return;
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const [formData, setFormData] = useState({
     name: "",
     address: "",
