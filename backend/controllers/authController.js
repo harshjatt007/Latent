@@ -32,7 +32,26 @@ exports.signup = async (req, res) => {
     // Save to database
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Generate token for the new user
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(201).json({ 
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        role: newUser.role,
+        avatar: newUser.avatar,
+        bio: newUser.bio,
+      }
+    });
   } catch (error) {
     console.error('Error during signup:', error);
     res.status(500).json({ message: 'Server error' });
@@ -72,6 +91,8 @@ exports.signin = async (req, res) => {
         lastName: existingUser.lastName,
         email: existingUser.email,
         role: existingUser.role,
+        avatar: existingUser.avatar,
+        bio: existingUser.bio,
       },
     });
   } catch (error) {
@@ -94,10 +115,51 @@ exports.checkAuth = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
+        bio: user.bio,
       }
     });
   } catch (error) {
     console.error('Error during check-auth:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, bio, avatar } = req.body;
+    const userId = req.user.id;
+
+    // Find and update the user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        firstName,
+        lastName,
+        bio,
+        avatar
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user: {
+        id: updatedUser._id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        avatar: updatedUser.avatar,
+        bio: updatedUser.bio,
+      }
+    });
+  } catch (error) {
+    console.error('Error during profile update:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
