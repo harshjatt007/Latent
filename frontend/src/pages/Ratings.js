@@ -5,11 +5,26 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { API_ENDPOINTS } from '../config/api';
 import { useAuthStore } from '../store/authStore';
+import { useNavigate } from 'react-router-dom';
 
 function Ratings() {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user, isAuthenticated } = useAuthStore();
+    const navigate = useNavigate();
+
+    // Check if user is authenticated and has audience role
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        
+        if (user && user.role !== 'audience') {
+            navigate('/unauthorized');
+            return;
+        }
+    }, [isAuthenticated, user, navigate]);
 
     async function postRating(value, vidid) {
         // Check if user is authenticated
@@ -19,8 +34,8 @@ function Ratings() {
         }
 
         // Check if user has audience role
-        if (user.role !== 'audience' && user.role !== 'admin') {
-            alert("Only audience members can rate videos. Please contact admin to change your role.");
+        if (user.role !== 'audience') {
+            alert("Only audience members can rate videos.");
             return;
         }
 
@@ -29,21 +44,12 @@ function Ratings() {
             const response = await axios.post(API_ENDPOINTS.rate, {
                 rating: value,
                 videoid: vidid,
-                userId: user._id
+                userId: user.id // Use user.id instead of user._id
             });
             console.log("Rating response:", response.data);
             
-            // Test: Check if the rating was actually saved
-            setTimeout(async () => {
-                try {
-                    const testResponse = await axios.post(API_ENDPOINTS.allVideos);
-                    const updatedVideo = testResponse.data.find(v => v._id === vidid);
-                    console.log("Updated video data:", updatedVideo);
-                    console.log("Updated ratings:", updatedVideo?.aboutPoints);
-                } catch (error) {
-                    console.error("Error checking updated video:", error);
-                }
-            }, 1000);
+            // Show success message
+            alert(`Rating submitted successfully! Average rating: ${response.data.averageRating}/5`);
             
             // Refresh videos after rating
             getAllVideos();
@@ -64,10 +70,6 @@ function Ratings() {
             const response = await axios.post(API_ENDPOINTS.allVideos);
             setVideos(response.data);
             console.log("Videos fetched:", response.data);
-            // Log each video's ratings
-            response.data.forEach((video, index) => {
-                console.log(`Video ${index + 1}:`, video.name, "Ratings:", video.ratings);
-            });
         } catch (error) {
             console.error("Error fetching videos:", error);
             setVideos([]);
@@ -76,30 +78,59 @@ function Ratings() {
         }
     }
 
-    function calculateAvg(arr) {
-        if (!arr || arr.length === 0) return 0;
-        const sum = arr.reduce((a, b) => a + b, 0);
-        return (sum / arr.length).toFixed(1);
-    }
+    // Check if current user has already rated this video
+    const hasUserRatedVideo = (video) => {
+        if (!user || !video.ratings) return false;
+        return video.ratings.some(rating => rating.userId === user.id);
+    };
 
     const renderVideos = videos.map((vid, index) => {
+        const userHasRated = hasUserRatedVideo(vid);
+        const isOwnVideo = vid.uploadedBy && vid.uploadedBy._id === user?.id;
+        
         return (
             <div key={vid._id || index} className='flex flex-col justify-center items-center bg-white rounded-lg shadow-md p-6 max-w-4xl w-full'>
                 <video controls src={vid.videoUrl} className='w-full max-w-2xl rounded-lg'></video>
                 <div className='mt-4 text-center'>
                     <p className='text-[#1308FE] font-bold text-xl pt-4'>{vid.name}</p>
                     <p className='text-gray-600 text-sm mt-2'>Age: {vid.age} | Address: {vid.address}</p>
+                    {vid.uploadedBy && (
+                        <p className='text-gray-500 text-xs mt-1'>
+                            Uploaded by: {vid.uploadedBy.firstName} {vid.uploadedBy.lastName}
+                        </p>
+                    )}
+                    
                     <div className='mt-4'>
-                        <p className='text-sm text-gray-600 mb-2'>Rate this performance:</p>
-                        <Rating 
-                            onChange={(value) => postRating(value, vid._id)} 
-                            className='mb-4'
-                        />
+                        {isOwnVideo ? (
+                            <p className='text-sm text-gray-500 mb-2'>You cannot rate your own video</p>
+                        ) : userHasRated ? (
+                            <p className='text-sm text-green-600 mb-2'>You have already rated this video</p>
+                        ) : (
+                            <>
+                                <p className='text-sm text-gray-600 mb-2'>Rate this performance:</p>
+                                <Rating 
+                                    onChange={(value) => postRating(value, vid._id)} 
+                                    className='mb-4'
+                                    emptySymbol="☆"
+                                    fullSymbol="★"
+                                    initialRating={0}
+                                />
+                            </>
+                        )}
                     </div>
+                    
                     <div className='flex justify-center space-x-8 mt-4'>
                         <p className='text-sm'>Self Rating: <span className='font-bold text-blue-600'>{vid.rating} ⭐</span></p>
-                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.aboutPoints || [])} ⭐</span></p>
+                        <p className='text-sm'>
+                            Audience Average: <span className='font-bold text-green-600'>
+                                {vid.averageRating ? `${vid.averageRating} ⭐` : 'No ratings yet'}
+                            </span>
+                        </p>
+                        <p className='text-sm'>
+                            Total Votes: <span className='font-bold text-purple-600'>{vid.totalRatings || 0}</span>
+                        </p>
                     </div>
+                    
                     {/* Display about points if they exist */}
                     {vid.aboutPoints && vid.aboutPoints.length > 0 && (
                         <div className='mt-4'>
@@ -119,8 +150,19 @@ function Ratings() {
     });
 
     useEffect(() => {
-        getAllVideos();
-    }, []);
+        if (isAuthenticated && user && user.role === 'audience') {
+            getAllVideos();
+        }
+    }, [isAuthenticated, user]);
+
+    // Show loading or unauthorized message
+    if (!isAuthenticated || !user) {
+        return <div className='flex justify-center items-center min-h-screen'>Loading...</div>;
+    }
+
+    if (user.role !== 'audience') {
+        return <div className='flex justify-center items-center min-h-screen'>Redirecting...</div>;
+    }
 
     return (
         <div className='bg-[#FFFFFF] w-full min-h-screen'>

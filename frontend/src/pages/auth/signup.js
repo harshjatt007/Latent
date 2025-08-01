@@ -81,15 +81,29 @@ const Signup = () => {
     if (!isValid) return;
 
     try {
-      await signup(
+      const result = await signup(
         formData.email,
         password,
         formData.firstName,
         formData.lastName,
         formData.role
       );
-      alert("Signup successful! Please log in.");
-      navigate("/login");
+      
+      // Get the message from the auth store
+      const { message } = useAuthStore.getState();
+      
+      if (message) {
+        alert(message);
+      } else {
+        alert("Signup successful! Please log in.");
+      }
+      
+      // Navigate to login or dashboard based on approval status
+      if (formData.role === 'participant') {
+        navigate("/dashboard");
+      } else {
+        navigate("/pending-approval");
+      }
     } catch (err) {
       alert(err.message);
     }
@@ -160,12 +174,12 @@ const Signup = () => {
                 onChange={(e) => handleInputChange("role", e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
               >
-                <option value="participant">🎭 Participant - Upload and compete with videos</option>
-                <option value="audience">👥 Audience - Rate and vote for contestants</option>
-                <option value="admin">👑 Admin - Manage the platform</option>
+                <option value="participant">🎭 Participant - Upload and compete with videos (Instant Access)</option>
+                <option value="audience">👥 Audience - Rate and vote for contestants (Requires Admin Approval)</option>
+                <option value="admin">👑 Admin - Manage the platform (Requires Admin Approval)</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                Choose your role carefully. You can request role changes from admin later.
+                <strong>Note:</strong> Participant accounts get instant access. Audience and Admin roles require approval from an administrator.
               </p>
               {errors.role && (
                 <p className="text-red-500 text-sm">{errors.role}</p>

@@ -7,6 +7,19 @@ const FormComponent = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuthStore();
 
+  // Check if user is authenticated and is a participant
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    if (user && user.role !== 'participant') {
+      navigate('/unauthorized');
+      return;
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -260,9 +273,9 @@ const FormComponent = () => {
       fData.append("address", formData.address);
       fData.append("age", formData.age);
       fData.append("rating", formData.rating);
-      // Convert aboutPoints to numbers for backend compatibility
-      const aboutPointsAsNumbers = formData.aboutPoints.map((_, index) => index + 1);
-      fData.append("aboutPoints", JSON.stringify(aboutPointsAsNumbers));
+      fData.append("userId", user.id); // Add userId for backend verification
+      // Convert aboutPoints to strings for backend compatibility
+      fData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
 
       try {
         console.log("Uploading to:", API_ENDPOINTS.fileUpload);

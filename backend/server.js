@@ -92,20 +92,45 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
   console.log("file:", req.file.path);
   console.log(req.body);
   
-  // Create video entry regardless of user existence
-  let aboutPoints = [];
   try {
-    aboutPoints = JSON.parse(req.body.aboutPoints);
-    // Ensure aboutPoints is an array of strings
-    if (!Array.isArray(aboutPoints)) {
+    // Check if user is authenticated and is a participant
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required to upload videos' 
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    // Only participants can upload videos
+    if (user.role !== 'participant') {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Only participants can upload videos' 
+      });
+    }
+
+    // Create video entry with user tracking
+    let aboutPoints = [];
+    try {
+      aboutPoints = JSON.parse(req.body.aboutPoints);
+      // Ensure aboutPoints is an array of strings
+      if (!Array.isArray(aboutPoints)) {
+        aboutPoints = [];
+      }
+    } catch (error) {
+      console.error("Error parsing aboutPoints:", error);
       aboutPoints = [];
     }
-  } catch (error) {
-    console.error("Error parsing aboutPoints:", error);
-    aboutPoints = [];
-  }
 
-  try {
     const video = new Video({
       name: req.body.name,
       videoUrl: req.file.path,
@@ -113,11 +138,15 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
       age: parseInt(req.body.age),
       rating: parseInt(req.body.rating),
       aboutPoints: aboutPoints,
+      uploadedBy: userId,
       ratings: [] // Initialize empty ratings array
     });
     await video.save();
     
-    // Don't require user to exist - just create the video
+    // Add video to user's uploaded videos
+    user.uploadedVideos.push(video._id);
+    await user.save();
+    
     console.log("Video saved successfully:", video._id);
     
     res.status(200).json({ 
@@ -137,7 +166,9 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
 
 app.post('/allVideos', async (req, res) => {
   try {
-    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
+    const videos = await Video.find({})
+      .populate('uploadedBy', 'firstName lastName')
+      .select('name videoUrl aboutPoints rating age address ratings averageRating totalRatings uploadedBy');
     res.status(200).send(videos);
   } catch (error) {
     console.error("Error fetching videos:", error);
@@ -160,20 +191,56 @@ app.post('/rate', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if user has audience role
-    if (user.role !== 'audience' && user.role !== 'admin') {
+    // Only audience members can rate videos (not admin or participants)
+    if (user.role !== 'audience') {
       return res.status(403).json({ error: 'Only audience members can rate videos' });
     }
 
-    const video = await Video.findById(videoid);
+    const video = await Video.findById(videoid).populate('uploadedBy');
     if (!video) {
       return res.status(404).json({ error: 'Video not found' });
     }
-    
-    // Add rating to the aboutPoints array (since that's where ratings are being saved)
-    video.aboutPoints.push(parseInt(rating));
-    await video.save();
-    res.status(200).json({ message: 'Rating added' });
+
+    // Check if user is trying to rate their own video (if they're the uploader)
+    if (video.uploadedBy && video.uploadedBy._id.toString() === userId) {
+      return res.status(403).json({ error: 'You cannot rate your own video' });
+    }
+
+    // Check if user has already rated this video
+    const existingRating = video.ratings.find(r => r.userId.toString() === userId);
+    if (existingRating) {
+      return res.status(400).json({ error: 'You have already rated this video' });
+    }
+
+    // Check if user has already rated this video in their profile
+    const userRatedVideo = user.ratedVideos.find(rv => rv.videoId.toString() === videoid);
+    if (userRatedVideo) {
+      return res.status(400).json({ error: 'You have already rated this video' });
+    }
+
+    // Add rating to video
+    video.ratings.push({
+      userId: userId,
+      rating: parseInt(rating),
+      ratedAt: new Date()
+    });
+
+    // Add rated video to user's profile
+    user.ratedVideos.push({
+      videoId: videoid,
+      rating: parseInt(rating),
+      ratedAt: new Date()
+    });
+
+    // Save both documents
+    await video.save(); // This will trigger the pre-save middleware to calculate averageRating
+    await user.save();
+
+    res.status(200).json({ 
+      message: 'Rating added successfully',
+      averageRating: video.averageRating,
+      totalRatings: video.totalRatings
+    });
   } catch (error) {
     console.error("Error adding rating:", error);
     res.status(500).json({ error: 'Error adding rating' });
@@ -192,28 +259,23 @@ app.post('/getVid', async (req, res) => {
 
 app.post('/getRankings', async (req, res) => {
   try {
-    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address');
+    const videos = await Video.find({})
+      .populate('uploadedBy', 'firstName lastName')
+      .select('name videoUrl aboutPoints rating age address averageRating totalRatings uploadedBy');
     
-    // Calculate average ratings and create rankings
-    const rankedVideos = videos.map(video => {
-      const ratings = video.aboutPoints || [];
-      const averageRating = ratings.length > 0 
-        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
-        : 0;
-      
-      return {
-        ...video.toObject(),
-        averageRating: parseFloat(averageRating),
-        totalRatings: ratings.length
-      };
-    });
-
-    // Sort by average rating (highest first)
-    rankedVideos.sort((a, b) => b.averageRating - a.averageRating);
+    // Sort by average rating (highest first), then by total ratings
+    const rankedVideos = videos
+      .filter(video => video.totalRatings > 0) // Only include videos with ratings
+      .sort((a, b) => {
+        if (b.averageRating === a.averageRating) {
+          return b.totalRatings - a.totalRatings; // If same average, sort by total ratings
+        }
+        return b.averageRating - a.averageRating;
+      });
 
     // Add rank position
     const finalRankings = rankedVideos.map((video, index) => ({
-      ...video,
+      ...video.toObject(),
       rank: index + 1
     }));
 

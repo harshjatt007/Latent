@@ -19,13 +19,14 @@ const handleError = (error) => {
 
 export const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       error: null,
       isLoading: false,
       isCheckingAuth: true,
       message: null,
+      pendingRequests: [],
 
       // Signup method
       signup: async (email, password, firstName, lastName, role) => {
@@ -52,6 +53,7 @@ export const useAuthStore = create(
             isAuthenticated: true,
             isLoading: false,
             error: null,
+            message: response.data.message,
           });
 
           return true;
@@ -103,7 +105,7 @@ export const useAuthStore = create(
       logout: async () => {
         console.log("Logging out..."); // Debugging logout
         localStorage.clear();
-        set({ user: null, isAuthenticated: false, error: null });
+        set({ user: null, isAuthenticated: false, error: null, pendingRequests: [] });
       },
 
       // Check authentication method
@@ -141,6 +143,57 @@ export const useAuthStore = create(
             isCheckingAuth: false,
             isAuthenticated: false,
           });
+        }
+      },
+
+      // Admin functions
+      getPendingRequests: async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+          const response = await axios.get(`${API_URL}/pending-requests`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          set({ pendingRequests: response.data.pendingRequests });
+          return response.data.pendingRequests;
+        } catch (error) {
+          const errorMessage = handleError(error);
+          console.error("Error getting pending requests:", errorMessage);
+          set({ error: errorMessage });
+          throw new Error(errorMessage);
+        }
+      },
+
+      approveUser: async (userId, approve) => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        set({ isLoading: true });
+
+        try {
+          const response = await axios.post(`${API_URL}/approve-user`, {
+            userId,
+            approve
+          }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          // Refresh pending requests
+          await get().getPendingRequests();
+          
+          set({ isLoading: false, message: response.data.message });
+          return response.data;
+        } catch (error) {
+          const errorMessage = handleError(error);
+          console.error("Error approving user:", errorMessage);
+          set({ error: errorMessage, isLoading: false });
+          throw new Error(errorMessage);
         }
       },
     }),

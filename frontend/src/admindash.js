@@ -1,368 +1,244 @@
-// import React, { useState, useEffect } from 'react';
-// import { Upload, VideoIcon, Star, Award } from 'lucide-react';
-// import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { useAuthStore } from './store/authStore';
+import { Users, CheckCircle, XCircle, Clock, Shield, UserCheck, AlertCircle } from 'lucide-react';
 
-// const UserDashboard = () => {
-//   const [userVideo, setUserVideo] = useState(null);
-//   const [uploadProgress, setUploadProgress] = useState(0);
-//   const [competitionStats, setCompetitionStats] = useState({
-//     totalParticipants: 25,
-//     topRatedVideo: 4.7,
-//     myCurrentRanking: 8
-//   });
-
-//   const handleVideoUpload = (event) => {
-//     const file = event.target.files[0];
-//     if (file) {
-//       // Simulate upload progress
-//       const simulateUpload = () => {
-//         let progress = 0;
-//         const interval = setInterval(() => {
-//           progress += 20;
-//           setUploadProgress(progress);
-
-//           if (progress >= 100) {
-//             clearInterval(interval);
-//             setUserVideo({
-//               title: file.name,
-//               type: file.type,
-//               size: `${(file.size / 1024 / 1024).toFixed(2)} MB`
-//             });
-//           }
-//         }, 500);
-//       };
-
-//       simulateUpload();
-//     }
-//   };
-
-//   return (
-//     <div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">
-//       {/* Header */}
-//       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-//         <motion.div
-//           initial={{ opacity: 0, y: -20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           transition={{ duration: 0.5 }}
-//         >
-//           <h1 className="text-2xl font-bold text-white">My Talent Showcase</h1>
-//         </motion.div>
-//       </header>
-
-//       {/* Competition Overview */}
-//       <motion.section
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.5 }}
-//         className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
-//       >
-//         <div className="flex justify-between items-center mb-4">
-//           <h2 className="text-lg font-bold text-gray-800">Competition Overview</h2>
-//           <Award className="text-yellow-500" size={32} />
-//         </div>
-//         <div className="grid grid-cols-3 gap-4">
-//           <div className="text-center">
-//             <p className="text-gray-600">Total Participants</p>
-//             <p className="text-2xl font-bold text-blue-600">
-//               {competitionStats.totalParticipants}
-//             </p>
-//           </div>
-//           <div className="text-center">
-//             <p className="text-gray-600">Top Rated</p>
-//             <p className="text-2xl font-bold text-green-600">
-//               {competitionStats.topRatedVideo}/5
-//             </p>
-//           </div>
-//           <div className="text-center">
-//             <p className="text-gray-600">My Ranking</p>
-//             <p className="text-2xl font-bold text-purple-600">
-//               #{competitionStats.myCurrentRanking}
-//             </p>
-//           </div>
-//         </div>
-//       </motion.section>
-
-//       {/* Video Upload Section */}
-//       <motion.section
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.6 }}
-//         className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
-//       >
-//         <h3 className="text-lg font-bold text-gray-800 mb-4">Upload Your Performance</h3>
-
-//         <div className="border-2 border-dashed border-gray-300 p-6 text-center">
-//           <input
-//             type="file"
-//             accept="video/*"
-//             onChange={handleVideoUpload}
-//             className="hidden"
-//             id="videoUpload"
-//           />
-//           <label
-//             htmlFor="videoUpload"
-//             className="cursor-pointer flex flex-col items-center"
-//           >
-//             <Upload className="w-12 h-12 text-blue-500 mb-4" />
-//             <p className="text-gray-600 mb-2">
-//               {userVideo
-//                 ? 'Video Uploaded Successfully'
-//                 : 'Drag & Drop or Click to Upload'}
-//             </p>
-//             <p className="text-sm text-gray-500">
-//               MP4, AVI, MOV (Max 500MB)
-//             </p>
-//           </label>
-//         </div>
-
-//         {uploadProgress > 0 && (
-//           <div className="mt-4">
-//             <div className="w-full bg-gray-200 rounded-full h-2.5">
-//               <div
-//                 className="bg-blue-600 h-2.5 rounded-full"
-//                 style={{ width: `${uploadProgress}%` }}
-//               ></div>
-//             </div>
-//             <p className="text-sm text-gray-600 mt-2">
-//               Uploading: {uploadProgress}%
-//             </p>
-//           </div>
-//         )}
-
-//         {userVideo && (
-//           <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-//             <div className="flex items-center justify-between">
-//               <div className="flex items-center space-x-4">
-//                 <VideoIcon className="text-blue-500" />
-//                 <div>
-//                   <p className="font-medium">{userVideo.title}</p>
-//                   <p className="text-sm text-gray-600">
-//                     {userVideo.type} | {userVideo.size}
-//                   </p>
-//                 </div>
-//               </div>
-//               <button className="text-red-500 hover:text-red-700">
-//                 Remove
-//               </button>
-//             </div>
-//           </div>
-//         )}
-//       </motion.section>
-
-//       {/* Performance Ratings */}
-//       <motion.section
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.7 }}
-//         className="bg-[#EBEAFF] shadow-md rounded-lg p-6"
-//       >
-//         <h3 className="text-lg font-bold text-gray-800 mb-4">My Performance Ratings</h3>
-//         <div className="grid grid-cols-2 gap-4">
-//           <div className="bg-white p-4 rounded-lg shadow-sm">
-//             <div className="flex justify-between items-center mb-2">
-//               <span className="text-gray-600">Self Rating</span>
-//               <Star className="text-yellow-400" size={20} />
-//             </div>
-//             <p className="text-2xl font-bold text-blue-600">4.2/5</p>
-//           </div>
-//           <div className="bg-white p-4 rounded-lg shadow-sm">
-//             <div className="flex justify-between items-center mb-2">
-//               <span className="text-gray-600">Viewer Rating</span>
-//               <Star className="text-yellow-400" size={20} />
-//             </div>
-//             <p className="text-2xl font-bold text-green-600">4.0/5</p>
-//           </div>
-//         </div>
-//       </motion.section>
-//     </div>
-//   );
-// };
-
-// export default UserDashboard;
-
-import React, { useState, useEffect } from "react";
-import { Trophy, VideoIcon, Star } from "lucide-react";
-import { motion } from "framer-motion";
-
-const Dashboard = () => {
-  const [videos, setVideos] = useState([]);
-  const [topPerformer, setTopPerformer] = useState(null);
-
-  // Mock data structure - replace with your actual data fetching logic
-  const mockVideos = [
-    {
-      id: "1",
-      participantName: "Abhishek Chaudhary",
-      videoTitle: "Contemporary Dance",
-      selfRating: 4.5,
-      averageViewerRating: 4.7,
-      filename: "Contemporary-Dance.mp4",
-      votesReceived: 95,
-    },
-    {
-      id: "2",
-      participantName: "Pulkit Garg",
-      videoTitle: "Acoustic Guitar Performance",
-      selfRating: 4.2,
-      averageViewerRating: 4.3,
-      filename: "Acoustic-Guitar-Performance.mp4",
-      votesReceived: 88,
-    },
-    {
-      id: "3",
-      participantName: "Ayush Kumar",
-      videoTitle: "Original Spoken Word",
-      selfRating: 4.0,
-      averageViewerRating: 4.1,
-      filename: "Original-Spoken-Word.mp4",
-      votesReceived: 76,
-    },
-    {
-      id: "4",
-      participantName: "Priya Singh",
-      videoTitle: "Classical Dance Performance",
-      selfRating: 4.3,
-      averageViewerRating: 4.5,
-      filename: "Classical-Dance-Performance.mp4",
-      votesReceived: 82,
-    },
-    {
-      id: "5",
-      participantName: "Rahul Verma",
-      videoTitle: "Stand-up Comedy Act",
-      selfRating: 4.1,
-      averageViewerRating: 4.4,
-      filename: "Standup-Comedy-Act.mp4",
-      votesReceived: 80,
-    },
-  ];
+const AdminDashboard = () => {
+  const { user, getPendingRequests, approveUser, pendingRequests, isLoading, error } = useAuthStore();
+  const [activeTab, setActiveTab] = useState('pending');
+  const [stats, setStats] = useState({
+    totalPending: 0,
+    totalApproved: 0,
+    totalRejected: 0
+  });
 
   useEffect(() => {
-    // In a real app, fetch videos from your backend
-    setVideos(mockVideos);
+    if (user && user.role === 'admin') {
+      loadPendingRequests();
+    }
+  }, [user]);
 
-    // Find top performer based on highest votes
-    const findTopPerformer = () => {
-      return mockVideos.reduce((top, current) =>
-        current.votesReceived > top.votesReceived ? current : top
-      );
-    };
+  useEffect(() => {
+    setStats({
+      totalPending: pendingRequests.length,
+      totalApproved: stats.totalApproved,
+      totalRejected: stats.totalRejected
+    });
+  }, [pendingRequests]);
 
-    setTopPerformer(findTopPerformer());
-  }, []);
+  const loadPendingRequests = async () => {
+    try {
+      await getPendingRequests();
+    } catch (error) {
+      console.error('Error loading pending requests:', error);
+    }
+  };
+
+  const handleApproval = async (userId, approve) => {
+    try {
+      await approveUser(userId, approve);
+      if (approve) {
+        setStats(prev => ({ 
+          ...prev, 
+          totalApproved: prev.totalApproved + 1,
+          totalPending: prev.totalPending - 1 
+        }));
+      } else {
+        setStats(prev => ({ 
+          ...prev, 
+          totalRejected: prev.totalRejected + 1,
+          totalPending: prev.totalPending - 1 
+        }));
+      }
+    } catch (error) {
+      console.error('Error processing approval:', error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getRoleBadgeColor = (role) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'audience':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'participant':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600">You don't have admin privileges to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-2xl font-bold text-white">
-            Talent Showcase Admin Dashboard
-          </h1>
-        </motion.div>
-      </header>
-
-      {/* Winner Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-800">
-            Current Top Performer
-          </h2>
-          <Trophy className="text-yellow-500" size={32} />
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-3">
+              <Shield className="w-8 h-8 text-blue-600" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-gray-600">Welcome back, {user.firstName}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <Shield className="w-4 h-4 mr-1" />
+                Administrator
+              </span>
+            </div>
+          </div>
         </div>
-        {topPerformer ? (
-          <div className="flex items-center space-x-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                {topPerformer.participantName}
-              </h3>
-              <p className="text-gray-600">{topPerformer.videoTitle}</p>
-              <div className="flex items-center space-x-2 mt-2">
-                <Star className="text-yellow-400" />
-                <span className="text-gray-700">
-                  Votes: {topPerformer.votesReceived} | Rating:{" "}
-                  {topPerformer.averageViewerRating}/5
-                </span>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Clock className="w-8 h-8 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Pending Requests</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalPending}</p>
               </div>
             </div>
           </div>
-        ) : (
-          <p className="text-gray-500">No participants found</p>
-        )}
-      </motion.section>
 
-      {/* Video Submissions */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-[#EBEAFF] shadow-md rounded-lg p-6"
-      >
-        <h3 className="text-lg font-bold text-gray-800 mb-4">
-          Video Submissions
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Participant</th>
-                <th className="py-3 px-6 text-left">Video Title</th>
-                <th className="py-3 px-6 text-center">Self Rating</th>
-                <th className="py-3 px-6 text-center">Viewer Rating</th>
-                <th className="py-3 px-6 text-center">Votes</th>
-                <th className="py-3 px-6 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600 text-sm font-light">
-              {videos.map((video) => (
-                <tr
-                  key={video.id}
-                  className="border-b border-gray-200 hover:bg-gray-100"
-                >
-                  <td className="py-3 px-6 text-left whitespace-nowrap">
-                    <span className="font-medium">{video.participantName}</span>
-                  </td>
-                  <td className="py-3 px-6 text-left">
-                    <span>{video.videoTitle}</span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <span className="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">
-                      {video.selfRating}/5
-                    </span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
-                      {video.averageViewerRating}/5
-                    </span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <span>{video.votesReceived}</span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <a
-                      href={`/video/${video.filename}`}
-                      className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
-                    >
-                      <VideoIcon className="mr-2" size={16} /> Watch
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Approved Today</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalApproved}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <XCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Rejected Today</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalRejected}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </motion.section>
+
+        {/* Main Content */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('pending')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'pending'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Users className="w-4 h-4 inline mr-2" />
+                Pending Approvals ({pendingRequests.length})
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertCircle className="w-5 h-5 text-red-400" />
+                  <div className="ml-3">
+                    <p className="text-sm text-red-800">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'pending' && (
+              <div>
+                {pendingRequests.length === 0 ? (
+                  <div className="text-center py-12">
+                    <UserCheck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Pending Requests</h3>
+                    <p className="text-gray-500">All user requests have been processed.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingRequests.map((request) => (
+                      <div key={request._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="text-lg font-medium text-gray-900">
+                                {request.firstName} {request.lastName}
+                              </h3>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeColor(request.requestedRole)}`}>
+                                {request.requestedRole}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 mb-1">{request.email}</p>
+                            <p className="text-sm text-gray-500">
+                              Requested on {formatDate(request.createdAt)}
+                            </p>
+                          </div>
+                          <div className="flex space-x-3 ml-4">
+                            <button
+                              onClick={() => handleApproval(request._id, true)}
+                              disabled={isLoading}
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleApproval(request._id, false)}
+                              disabled={isLoading}
+                              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;
