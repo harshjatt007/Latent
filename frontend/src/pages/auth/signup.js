@@ -16,6 +16,7 @@ const Signup = () => {
     firstName: "",
     lastName: "",
     email: "",
+    role: "participant", // Default role
   });
 
   const [errors, setErrors] = useState({
@@ -24,6 +25,7 @@ const Signup = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "",
   });
 
   // Helper: Capitalize the first letter of each word
@@ -83,7 +85,8 @@ const Signup = () => {
         formData.email,
         password,
         formData.firstName,
-        formData.lastName
+        formData.lastName,
+        formData.role
       );
       alert("Signup successful! Please log in.");
       navigate("/login");
@@ -144,6 +147,28 @@ const Signup = () => {
               />
               {errors.email && (
                 <p className="text-red-500 text-sm">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="role" className="text-gray-700">
+                Select Your Role
+              </label>
+              <select
+                id="role"
+                value={formData.role}
+                onChange={(e) => handleInputChange("role", e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="participant">🎭 Participant - Upload and compete with videos</option>
+                <option value="audience">👥 Audience - Rate and vote for contestants</option>
+                <option value="admin">👑 Admin - Manage the platform</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Choose your role carefully. You can request role changes from admin later.
+              </p>
+              {errors.role && (
+                <p className="text-red-500 text-sm">{errors.role}</p>
               )}
             </div>
 

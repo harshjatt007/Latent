@@ -1,7 +1,7 @@
 // API Configuration for different environments
 const API_CONFIG = {
   development: {
-    baseURL: 'https://latent-kk5m.onrender.com', // Temporarily use production for development
+    baseURL: 'http://localhost:5000',
   },
   production: {
     baseURL: 'https://latent-kk5m.onrender.com',
@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   allVideos: `${API_BASE_URL}/allVideos`,
   rate: `${API_BASE_URL}/rate`,
   getVid: `${API_BASE_URL}/getVid`,
+  getRankings: `${API_BASE_URL}/getRankings`,
 };
 
 // Log all endpoints for debugging

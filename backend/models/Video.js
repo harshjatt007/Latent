@@ -22,7 +22,11 @@ const VideoSchema = new mongoose.Schema({
     required: true,
   },
   aboutPoints: {
-    type: [Number],
+    type: [String], // Changed from [Number] to [String] for text descriptions
+  },
+  ratings: {
+    type: [Number], // New field for actual ratings (1-5)
+    default: []
   }
 });
 

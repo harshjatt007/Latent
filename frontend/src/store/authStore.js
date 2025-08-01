@@ -26,7 +26,7 @@ export const useAuthStore = create(
       message: null,
 
       // Signup method
-      signup: async (email, password, firstName, lastName) => {
+      signup: async (email, password, firstName, lastName, role) => {
         set({ isLoading: true, error: null });
 
         try {
@@ -35,6 +35,7 @@ export const useAuthStore = create(
             password,
             firstName,
             lastName,
+            role,
           });
 
           console.log("Signup response:", response.data); // Debugging response data

@@ -4,31 +4,70 @@ import Rating from 'react-rating';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { API_ENDPOINTS } from '../config/api';
+import { useAuthStore } from '../store/authStore';
 
 function Ratings() {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user, isAuthenticated } = useAuthStore();
 
     async function postRating(value, vidid) {
+        // Check if user is authenticated
+        if (!isAuthenticated || !user) {
+            alert("Please sign in to rate videos");
+            return;
+        }
+
+        // Check if user has audience role
+        if (user.role !== 'audience' && user.role !== 'admin') {
+            alert("Only audience members can rate videos. Please contact admin to change your role.");
+            return;
+        }
+
         try {
-            await axios.post(API_ENDPOINTS.rate, {
+            console.log("Submitting rating:", value, "for video:", vidid);
+            const response = await axios.post(API_ENDPOINTS.rate, {
                 rating: value,
-                videoid: vidid
+                videoid: vidid,
+                userId: user._id
             });
+            console.log("Rating response:", response.data);
+            
+            // Test: Check if the rating was actually saved
+            setTimeout(async () => {
+                try {
+                    const testResponse = await axios.post(API_ENDPOINTS.allVideos);
+                    const updatedVideo = testResponse.data.find(v => v._id === vidid);
+                    console.log("Updated video data:", updatedVideo);
+                    console.log("Updated ratings:", updatedVideo?.aboutPoints);
+                } catch (error) {
+                    console.error("Error checking updated video:", error);
+                }
+            }, 1000);
+            
             // Refresh videos after rating
             getAllVideos();
         } catch (error) {
             console.error("Error posting rating:", error);
-            alert("Error posting rating. Please try again.");
+            if (error.response?.data?.error) {
+                alert(error.response.data.error);
+            } else {
+                alert("Error posting rating. Please try again.");
+            }
         }
     }
 
     async function getAllVideos() {
         try {
             setLoading(true);
+            console.log("Fetching videos from:", API_ENDPOINTS.allVideos);
             const response = await axios.post(API_ENDPOINTS.allVideos);
             setVideos(response.data);
             console.log("Videos fetched:", response.data);
+            // Log each video's ratings
+            response.data.forEach((video, index) => {
+                console.log(`Video ${index + 1}:`, video.name, "Ratings:", video.ratings);
+            });
         } catch (error) {
             console.error("Error fetching videos:", error);
             setVideos([]);
@@ -59,8 +98,21 @@ function Ratings() {
                     </div>
                     <div className='flex justify-center space-x-8 mt-4'>
                         <p className='text-sm'>Self Rating: <span className='font-bold text-blue-600'>{vid.rating} ⭐</span></p>
-                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.aboutPoints)} ⭐</span></p>
+                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.aboutPoints || [])} ⭐</span></p>
                     </div>
+                    {/* Display about points if they exist */}
+                    {vid.aboutPoints && vid.aboutPoints.length > 0 && (
+                        <div className='mt-4'>
+                            <p className='text-sm text-gray-600 mb-2'>About this contestant:</p>
+                            <div className='flex flex-wrap justify-center gap-2'>
+                                {vid.aboutPoints.map((point, idx) => (
+                                    <span key={idx} className='bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded'>
+                                        {point}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

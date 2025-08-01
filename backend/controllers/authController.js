@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 // Signup function
 exports.signup = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
 
   try {
     // Check if user already exists
@@ -25,7 +25,8 @@ exports.signup = async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
-      avatar: `https://avatar.iran.liara.run/public/${randomNumber}`
+      avatar: `https://avatar.iran.liara.run/public/${randomNumber}`,
+      role: role || 'participant' // Default to participant if no role specified
     });
 
     // Save to database
@@ -70,6 +71,7 @@ exports.signin = async (req, res) => {
         firstName: existingUser.firstName,
         lastName: existingUser.lastName,
         email: existingUser.email,
+        role: existingUser.role,
       },
     });
   } catch (error) {
@@ -85,7 +87,15 @@ exports.checkAuth = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json({ user });
+    res.status(200).json({ 
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      }
+    });
   } catch (error) {
     console.error('Error during check-auth:', error);
     res.status(500).json({ message: 'Server error' });

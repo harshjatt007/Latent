@@ -11,6 +11,7 @@ const UserDashboard = () => {
   const [userVideo, setUserVideo] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [videos, setVideos] = useState([]);
+  const [rankings, setRankings] = useState([]);
   const [competitionStats, setCompetitionStats] = useState({
     totalParticipants: 0,
     topRatedVideo: 0,
@@ -28,11 +29,18 @@ const UserDashboard = () => {
       const response = await axios.post(API_ENDPOINTS.allVideos);
       setVideos(response.data);
       
+      // Get rankings
+      const rankingsResponse = await axios.post(API_ENDPOINTS.getRankings);
+      setRankings(rankingsResponse.data);
+      
+      // Find user's rank
+      const userRank = rankingsResponse.data.find(video => video.name === user?.firstName);
+      
       // Update competition stats
       setCompetitionStats({
         totalParticipants: response.data.length,
-        topRatedVideo: response.data.length > 0 ? Math.max(...response.data.map(v => v.rating)) : 0,
-        myCurrentRanking: response.data.length > 0 ? response.data.findIndex(v => v.name === user?.firstName) + 1 : 0
+        topRatedVideo: rankingsResponse.data.length > 0 ? rankingsResponse.data[0].averageRating : 0,
+        myCurrentRanking: userRank ? userRank.rank : 0
       });
     }catch(e){
       console.log("Error fetching videos:", e);
@@ -155,7 +163,9 @@ const UserDashboard = () => {
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-sm text-gray-600">Audience Rating:</span>
                       <span className="font-bold text-green-600">
-                        {(video.aboutPoints.reduce((a, b) => a + b, 0) / video.aboutPoints.length).toFixed(1)}/5 ⭐
+                        {(video.aboutPoints && video.aboutPoints.length > 0) 
+                          ? (video.aboutPoints.reduce((a, b) => a + b, 0) / video.aboutPoints.length).toFixed(1)
+                          : '0.0'}/5 ⭐
                       </span>
                     </div>
                   )}
@@ -165,6 +175,40 @@ const UserDashboard = () => {
           </div>
         )}
       </motion.section>
+
+      {/* Rankings Section */}
+      {rankings.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
+        >
+          <h3 className="text-lg font-bold text-gray-800 mb-4">🏆 Current Rankings</h3>
+          <div className="space-y-3">
+            {rankings.slice(0, 10).map((video, index) => (
+              <div key={video._id} className="bg-white rounded-lg p-4 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                    index === 0 ? 'bg-yellow-500' : 
+                    index === 1 ? 'bg-gray-400' : 
+                    index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">{video.name}</h4>
+                    <p className="text-sm text-gray-600">Average: {video.averageRating}/5 ⭐ ({video.totalRatings} ratings)</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-sm text-gray-600">Rank #{video.rank}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      )}
     </div>
   );
 };

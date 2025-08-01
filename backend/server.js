@@ -96,6 +96,10 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
   let aboutPoints = [];
   try {
     aboutPoints = JSON.parse(req.body.aboutPoints);
+    // Ensure aboutPoints is an array of strings
+    if (!Array.isArray(aboutPoints)) {
+      aboutPoints = [];
+    }
   } catch (error) {
     console.error("Error parsing aboutPoints:", error);
     aboutPoints = [];
@@ -108,7 +112,8 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
       address: req.body.address,
       age: parseInt(req.body.age),
       rating: parseInt(req.body.rating),
-      aboutPoints: aboutPoints
+      aboutPoints: aboutPoints,
+      ratings: [] // Initialize empty ratings array
     });
     await video.save();
     
@@ -131,16 +136,48 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
 });
 
 app.post('/allVideos', async (req, res) => {
-  const videos = await Video.find({}).populate('aboutPoints').select('name videoUrl aboutPoints rating');
-  res.status(200).send(videos);
+  try {
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
+    res.status(200).send(videos);
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    res.status(500).json({ error: 'Error fetching videos' });
+  }
 });
 
 app.post('/rate', async (req, res) => {
-  const { videoid, rating } = req.body;
-  const video = await Video.findById(videoid);
-  video.aboutPoints.push(rating);
-  await video.save();
-  res.status(200).json({ message: 'Rating added' });
+  const { videoid, rating, userId } = req.body;
+  
+  try {
+    // Check if user is authenticated
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required to rate videos' });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if user has audience role
+    if (user.role !== 'audience' && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only audience members can rate videos' });
+    }
+
+    const video = await Video.findById(videoid);
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    // Add rating to the aboutPoints array (since that's where ratings are being saved)
+    video.aboutPoints.push(parseInt(rating));
+    await video.save();
+    res.status(200).json({ message: 'Rating added' });
+  } catch (error) {
+    console.error("Error adding rating:", error);
+    res.status(500).json({ error: 'Error adding rating' });
+  }
 })
 
 app.post('/getVid', async (req, res) => {
@@ -152,6 +189,40 @@ app.post('/getVid', async (req, res) => {
   if (user.videos.length > 0) return res.send(user.videos[user.videos.length - 1]);
   return res.status(400).send("Error occurred");
 })
+
+app.post('/getRankings', async (req, res) => {
+  try {
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address');
+    
+    // Calculate average ratings and create rankings
+    const rankedVideos = videos.map(video => {
+      const ratings = video.aboutPoints || [];
+      const averageRating = ratings.length > 0 
+        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+        : 0;
+      
+      return {
+        ...video.toObject(),
+        averageRating: parseFloat(averageRating),
+        totalRatings: ratings.length
+      };
+    });
+
+    // Sort by average rating (highest first)
+    rankedVideos.sort((a, b) => b.averageRating - a.averageRating);
+
+    // Add rank position
+    const finalRankings = rankedVideos.map((video, index) => ({
+      ...video,
+      rank: index + 1
+    }));
+
+    res.status(200).json(finalRankings);
+  } catch (error) {
+    console.error("Error getting rankings:", error);
+    res.status(500).json({ error: 'Error getting rankings' });
+  }
+});
 
 app.use(passport.initialize());
 app.use(passport.session());
