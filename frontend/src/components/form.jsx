@@ -96,7 +96,7 @@ const FormComponent = () => {
     }
 
     try {
-      const response = await fetch("https://latent-kk5m.onrender.com/create-order", {
+      const response = await fetch(`${API_ENDPOINTS.BASE_URL}/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

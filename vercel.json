@@ -19,6 +19,30 @@
       "dest": "/backend/server.js"
     },
     {
+      "src": "/create-order",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/fileupload",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/allVideos",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/rate",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/getVid",
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/getRankings",
+      "dest": "/backend/server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }

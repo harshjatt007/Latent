@@ -1,5 +1,5 @@
 const express = require('express');
-const { signup, signin, checkAuth, updateProfile, getPendingRequests, approveUser } = require('../controllers/authController');
+const { signup, signin, checkAuth, updateProfile, getPendingRequests, approveUser, promoteToAdmin, getAllUsers } = require('../controllers/authController');
 const { verifyToken } = require('../middleware/verifyToken');
 
 const router = express.Router();
@@ -13,5 +13,7 @@ router.post('/updateProfile', verifyToken, updateProfile);
 // Admin routes
 router.get('/pending-requests', verifyToken, getPendingRequests);
 router.post('/approve-user', verifyToken, approveUser);
+router.post('/promote-to-admin', verifyToken, promoteToAdmin);
+router.get('/all-users', verifyToken, getAllUsers);
 
 module.exports = router;

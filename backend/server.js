@@ -23,7 +23,10 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://latent-delta.vercel.app',
   'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
-  'https://latent-kk5m.onrender.com'
+  'https://latent-kk5m.onrender.com',
+  // Add more flexible Vercel patterns
+  'https://latent-git-main-abhishek1161be22-chitkaraedus-projects.vercel.app',
+  'https://latent-abhishek1161be22-chitkaraedus-projects.vercel.app'
 ];
 
 const corsOptions = {
@@ -31,7 +34,12 @@ const corsOptions = {
     console.log("CORS origin check:", origin);
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    const allowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
+    
+    // Check if origin matches any allowed origin or is a Vercel deployment
+    const allowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin)) ||
+                   origin.includes('vercel.app') ||
+                   origin.includes('localhost');
+    
     if (allowed) {
       callback(null, true);
     } else {
