@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 
 const Profile = () => {
   // Get user data from auth store
-  const { isAuthenticated, logout, user } = useAuthStore();
+  const { user } = useAuthStore();
   
   // Initialize user details from auth store user data
   const initialUserDetails = {

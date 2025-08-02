@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS, API_BASE_URL } from "../config/api";
+import { API_ENDPOINTS } from "../config/api";
 
 const FormComponent = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   // Check if user is authenticated and is a participant
   React.useEffect(() => {
@@ -219,7 +219,9 @@ const FormComponent = () => {
                 });
               }
               break;
-            
+            default:
+              // No specific validation for other fields
+              break;
         }
       }
       return newErrors;
@@ -340,7 +342,7 @@ const FormComponent = () => {
     }
 
     try {
-      const result = await handlesubmit2(e);
+      await handlesubmit2(e);
       alert("Form submitted successfully! Your video has been uploaded.");
       // Reset form after successful submission
       setFormData({

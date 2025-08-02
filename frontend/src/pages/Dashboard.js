@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, VideoIcon, Star, Award, ArrowLeft } from 'lucide-react';
+import { Award, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -8,8 +8,8 @@ import { API_ENDPOINTS } from '../config/api';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
-  const [userVideo, setUserVideo] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  // const [userVideo, setUserVideo] = useState(null);
+  // const [uploadProgress, setUploadProgress] = useState(0);
   const [videos, setVideos] = useState([]);
   const [rankings, setRankings] = useState([]);
   const [competitionStats, setCompetitionStats] = useState({
@@ -18,7 +18,7 @@ const UserDashboard = () => {
     myCurrentRanking: 0
   });
 
-  const { isAuthenticated, logout, user } = useAuthStore();
+  const { user } = useAuthStore();
 
   const handleBackClick = () => {
     navigate('/');
@@ -49,32 +49,33 @@ const UserDashboard = () => {
 
   useEffect(()=>{
     getAllVideos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
 
-  const handleVideoUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Simulate upload progress
-      const simulateUpload = () => {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 20;
-          setUploadProgress(progress);
+  // const handleVideoUpload = (event) => {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     // Simulate upload progress
+  //     const simulateUpload = () => {
+  //       let progress = 0;
+  //       const interval = setInterval(() => {
+  //         progress += 20;
+  //         setUploadProgress(progress);
           
-          if (progress >= 100) {
-            clearInterval(interval);
-            setUserVideo({
-              title: file.name,
-              type: file.type,
-              size: `${(file.size / 1024 / 1024).toFixed(2)} MB`
-            });
-          }
-        }, 500);
-      };
+  //         if (progress >= 100) {
+  //           clearInterval(interval);
+  //           setUserVideo({
+  //             title: file.name,
+  //             type: file.type,
+  //             size: `${(file.size / 1024 / 1024).toFixed(2)} MB`
+  //           });
+  //         }
+  //       }, 500);
+  //     };
 
-      simulateUpload();
-    }
-  };
+  //     simulateUpload();
+  //   }
+  // };
 
   return (
 <div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">

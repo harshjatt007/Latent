@@ -21,8 +21,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:5173',
-  'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
   'https://latent-delta.vercel.app',
+  'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
   'https://latent-kk5m.onrender.com'
 ];
 
@@ -399,12 +399,11 @@ app.get('/contact', (req, res) => {
 
 // Razorpay configuration
 const razorpay = new Razorpay({
-  key_id: 'rzp_test_jX0Zhni0nTh4Wp',
-  key_secret: 'mGCPGnETTmsFmhXO9U48euDO',
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_jX0Zhni0nTh4Wp',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'mGCPGnETTmsFmhXO9U48euDO',
 });
 
-// Routes
-//app.use('/api/auth', authRoutes);  // Register the auth routes
+// Additional Routes (auth routes already registered above)
 
 // Route to create a Razorpay order
 app.post('/create-order', async (req, res) => {

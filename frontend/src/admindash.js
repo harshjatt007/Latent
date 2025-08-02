@@ -15,7 +15,7 @@ const AdminDashboard = () => {
     if (user && user.role === 'admin') {
       loadPendingRequests();
     }
-  }, [user]);
+  }, [user, loadPendingRequests]);
 
   useEffect(() => {
     setStats({
@@ -23,15 +23,15 @@ const AdminDashboard = () => {
       totalApproved: stats.totalApproved,
       totalRejected: stats.totalRejected
     });
-  }, [pendingRequests]);
+  }, [pendingRequests, stats.totalApproved, stats.totalRejected]);
 
-  const loadPendingRequests = async () => {
+  const loadPendingRequests = React.useCallback(async () => {
     try {
       await getPendingRequests();
     } catch (error) {
       console.error('Error loading pending requests:', error);
     }
-  };
+  }, [getPendingRequests]);
 
   const handleApproval = async (userId, approve) => {
     try {
