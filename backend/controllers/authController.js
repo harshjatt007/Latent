@@ -23,7 +23,7 @@ exports.signup = async (req, res) => {
     const randomNumber = Math.floor(Math.random() * 100) + 1;
 
     let userRole = 'participant';
-    let isApproved = false;
+    let isApproved = true; // Auto-approve all users by default
     let approvalRequestPending = false;
 
     // Check if this is the original admin
@@ -31,14 +31,15 @@ exports.signup = async (req, res) => {
       userRole = 'admin';
       isApproved = true;
     } else {
-      // For non-admin users, check if they're requesting admin or audience role
-      if (role && (role === 'admin' || role === 'audience')) {
-        // Set approval request pending for admin/audience roles
+      // For regular users, set their role based on request
+      if (role === 'admin') {
+        // Admin role requests require approval
         approvalRequestPending = true;
+        isApproved = false;
         userRole = 'participant'; // Keep as participant until approved
       } else {
-        // Participants are auto-approved
-        userRole = 'participant';
+        // Participants and audience are auto-approved
+        userRole = role || 'participant';
         isApproved = true;
       }
     }
@@ -68,7 +69,7 @@ exports.signup = async (req, res) => {
 
     let message = 'User registered successfully';
     if (approvalRequestPending) {
-      message = 'Registration successful. Your role request is pending admin approval.';
+      message = 'Registration successful. Your admin role request is pending approval.';
     }
 
     res.status(201).json({ 
@@ -109,10 +110,10 @@ exports.signin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check if user is approved (except for original admin)
-    if (!existingUser.isApproved && existingUser.email !== ORIGINAL_ADMIN_EMAIL) {
+    // Check if user is approved - only block if admin request is pending
+    if (!existingUser.isApproved && existingUser.approvalRequestPending) {
       return res.status(403).json({ 
-        message: 'Your account is pending admin approval',
+        message: 'Your admin role request is pending approval. You can login once approved.',
         approvalRequestPending: existingUser.approvalRequestPending
       });
     }
@@ -280,6 +281,67 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Error during profile update:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// New function to promote user to admin (admin only)
+exports.promoteToAdmin = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const requestingUser = await User.findById(req.user.id);
+    
+    // Check if the requesting user is an admin
+    if (requestingUser.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    const userToPromote = await User.findById(userId);
+    if (!userToPromote) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Promote user to admin
+    userToPromote.role = 'admin';
+    userToPromote.isApproved = true;
+    userToPromote.approvalRequestPending = false;
+    userToPromote.requestedRole = 'admin';
+
+    await userToPromote.save();
+
+    res.status(200).json({ 
+      message: 'User promoted to admin successfully',
+      user: {
+        id: userToPromote._id,
+        firstName: userToPromote.firstName,
+        lastName: userToPromote.lastName,
+        email: userToPromote.email,
+        role: userToPromote.role,
+        isApproved: userToPromote.isApproved
+      }
+    });
+  } catch (error) {
+    console.error('Error promoting user to admin:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// New function to get all users (admin only)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const requestingUser = await User.findById(req.user.id);
+    
+    // Check if the requesting user is an admin
+    if (requestingUser.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    // Get all users except passwords
+    const users = await User.find({}).select('-password');
+
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error('Error getting all users:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -33,8 +33,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // If user is not approved (except for original admin), redirect to pending page
-  if (!user.isApproved && user.email !== 'abhishek1161.be22@chitkara.edu.in') {
+  // If user has pending admin request and is not approved, redirect to pending page
+  if (!user.isApproved && user.approvalRequestPending) {
     return <Navigate to="/pending-approval" replace />;
   }
 

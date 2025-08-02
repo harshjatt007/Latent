@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
-import { Users, CheckCircle, XCircle, Clock, Shield, UserCheck, AlertCircle } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, Shield, UserCheck, AlertCircle, Crown } from 'lucide-react';
+import { API_ENDPOINTS } from './config/api';
 
 const AdminDashboard = () => {
   const { user, getPendingRequests, approveUser, pendingRequests, isLoading, error } = useAuthStore();
   const [activeTab, setActiveTab] = useState('pending');
+  const [allUsers, setAllUsers] = useState([]);
   const [stats, setStats] = useState({
     totalPending: 0,
     totalApproved: 0,
     totalRejected: 0
   });
 
+  const loadPendingRequests = React.useCallback(async () => {
+    try {
+      await getPendingRequests();
+    } catch (error) {
+      console.error('Error loading pending requests:', error);
+    }
+  }, [getPendingRequests]);
+
   useEffect(() => {
     if (user && user.role === 'admin') {
       loadPendingRequests();
+      loadAllUsers();
     }
   }, [user, loadPendingRequests]);
 
@@ -25,13 +36,52 @@ const AdminDashboard = () => {
     });
   }, [pendingRequests, stats.totalApproved, stats.totalRejected]);
 
-  const loadPendingRequests = React.useCallback(async () => {
+  const loadAllUsers = async () => {
     try {
-      await getPendingRequests();
+      const token = localStorage.getItem('token');
+      const response = await fetch(API_ENDPOINTS.auth.allUsers, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAllUsers(data.users);
+      } else {
+        console.error('Failed to load users');
+      }
     } catch (error) {
-      console.error('Error loading pending requests:', error);
+      console.error('Error loading users:', error);
     }
-  }, [getPendingRequests]);
+  };
+
+  const promoteToAdmin = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(API_ENDPOINTS.auth.promoteToAdmin, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        loadAllUsers(); // Refresh the user list
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to promote user');
+      }
+    } catch (error) {
+      console.error('Error promoting user:', error);
+      alert('Error promoting user to admin');
+    }
+  };
 
   const handleApproval = async (userId, approve) => {
     try {
@@ -49,8 +99,11 @@ const AdminDashboard = () => {
           totalPending: prev.totalPending - 1 
         }));
       }
+      // Refresh both lists
+      loadPendingRequests();
+      loadAllUsers();
     } catch (error) {
-      console.error('Error processing approval:', error);
+      console.error('Error handling approval:', error);
     }
   };
 
@@ -167,6 +220,17 @@ const AdminDashboard = () => {
                 <Users className="w-4 h-4 inline mr-2" />
                 Pending Approvals ({pendingRequests.length})
               </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'users'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Crown className="w-4 h-4 inline mr-2" />
+                User Management ({allUsers.length})
+              </button>
             </nav>
           </div>
 
@@ -226,6 +290,84 @@ const AdminDashboard = () => {
                               <XCircle className="w-4 h-4 mr-2" />
                               Reject
                             </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'users' && (
+              <div>
+                {allUsers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Users Found</h3>
+                    <p className="text-gray-500">No users available to manage.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="mb-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">All Users</h3>
+                      <p className="text-sm text-gray-600">Manage user roles and permissions</p>
+                    </div>
+                    {allUsers.map((userItem) => (
+                      <div key={userItem._id} className="border rounded-lg p-4 hover:bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <img
+                              src={userItem.avatar}
+                              alt={`${userItem.firstName} ${userItem.lastName}`}
+                              className="w-12 h-12 rounded-full"
+                            />
+                            <div>
+                              <h4 className="font-medium text-gray-900">
+                                {userItem.firstName} {userItem.lastName}
+                              </h4>
+                              <p className="text-sm text-gray-500">{userItem.email}</p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  userItem.role === 'admin' 
+                                    ? 'bg-purple-100 text-purple-800'
+                                    : userItem.role === 'participant'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {userItem.role === 'admin' && <Crown className="w-3 h-3 mr-1" />}
+                                  {userItem.role}
+                                </span>
+                                {userItem.approvalRequestPending && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    Pending
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            {userItem.role !== 'admin' && userItem._id !== user.id && (
+                              <button
+                                onClick={() => promoteToAdmin(userItem._id)}
+                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                              >
+                                <Crown className="w-4 h-4 mr-2" />
+                                Promote to Admin
+                              </button>
+                            )}
+                            {userItem.role === 'admin' && (
+                              <span className="inline-flex items-center px-3 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-md">
+                                <Crown className="w-4 h-4 mr-2" />
+                                Administrator
+                              </span>
+                            )}
+                            {userItem._id === user.id && (
+                              <span className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-md">
+                                You
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
