@@ -155,7 +155,9 @@ const UserDashboard = () => {
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-sm text-gray-600">Audience Rating:</span>
                       <span className="font-bold text-green-600">
-                        {(video.aboutPoints.reduce((a, b) => a + b, 0) / video.aboutPoints.length).toFixed(1)}/5 ⭐
+                        {(video.ratings && video.ratings.length > 0) 
+                          ? (video.ratings.reduce((a, b) => a + b, 0) / video.ratings.length).toFixed(1)
+                          : '0.0'}/5 ⭐
                       </span>
                     </div>
                   )}

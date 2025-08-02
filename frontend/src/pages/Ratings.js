@@ -11,10 +11,25 @@ function Ratings() {
 
     async function postRating(value, vidid) {
         try {
-            await axios.post(API_ENDPOINTS.rate, {
+            console.log("Submitting rating:", value, "for video:", vidid);
+            const response = await axios.post(API_ENDPOINTS.rate, {
                 rating: value,
                 videoid: vidid
             });
+            console.log("Rating response:", response.data);
+            
+            // Test: Check if the rating was actually saved
+            setTimeout(async () => {
+                try {
+                    const testResponse = await axios.post(API_ENDPOINTS.allVideos);
+                    const updatedVideo = testResponse.data.find(v => v._id === vidid);
+                    console.log("Updated video data:", updatedVideo);
+                    console.log("Updated ratings:", updatedVideo?.ratings);
+                } catch (error) {
+                    console.error("Error checking updated video:", error);
+                }
+            }, 1000);
+            
             // Refresh videos after rating
             getAllVideos();
         } catch (error) {
@@ -26,9 +41,14 @@ function Ratings() {
     async function getAllVideos() {
         try {
             setLoading(true);
+            console.log("Fetching videos from:", API_ENDPOINTS.allVideos);
             const response = await axios.post(API_ENDPOINTS.allVideos);
             setVideos(response.data);
             console.log("Videos fetched:", response.data);
+            // Log each video's ratings
+            response.data.forEach((video, index) => {
+                console.log(`Video ${index + 1}:`, video.name, "Ratings:", video.ratings);
+            });
         } catch (error) {
             console.error("Error fetching videos:", error);
             setVideos([]);
@@ -59,8 +79,33 @@ function Ratings() {
                     </div>
                     <div className='flex justify-center space-x-8 mt-4'>
                         <p className='text-sm'>Self Rating: <span className='font-bold text-blue-600'>{vid.rating} ⭐</span></p>
-                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.aboutPoints)} ⭐</span></p>
+                        <p className='text-sm'>Audience Average: <span className='font-bold text-green-600'>{calculateAvg(vid.aboutPoints || [])} ⭐</span></p>
                     </div>
+                    {/* Debug info */}
+                    <div className='mt-2 text-xs text-gray-500'>
+                        <p>Video ID: {vid._id}</p>
+                        <p>Ratings Array: {JSON.stringify(vid.ratings)}</p>
+                        <p>About Points: {JSON.stringify(vid.aboutPoints)}</p>
+                        <button 
+                            onClick={() => postRating(5, vid._id)}
+                            className='mt-2 px-2 py-1 bg-red-500 text-white text-xs rounded'
+                        >
+                            Test Rating (5 stars)
+                        </button>
+                    </div>
+                    {/* Display about points if they exist */}
+                    {vid.aboutPoints && vid.aboutPoints.length > 0 && (
+                        <div className='mt-4'>
+                            <p className='text-sm text-gray-600 mb-2'>About this contestant:</p>
+                            <div className='flex flex-wrap justify-center gap-2'>
+                                {vid.aboutPoints.map((point, idx) => (
+                                    <span key={idx} className='bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded'>
+                                        {point}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

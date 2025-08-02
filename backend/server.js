@@ -96,6 +96,10 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
   let aboutPoints = [];
   try {
     aboutPoints = JSON.parse(req.body.aboutPoints);
+    // Ensure aboutPoints is an array of strings
+    if (!Array.isArray(aboutPoints)) {
+      aboutPoints = [];
+    }
   } catch (error) {
     console.error("Error parsing aboutPoints:", error);
     aboutPoints = [];
@@ -108,7 +112,8 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
       address: req.body.address,
       age: parseInt(req.body.age),
       rating: parseInt(req.body.rating),
-      aboutPoints: aboutPoints
+      aboutPoints: aboutPoints,
+      ratings: [] // Initialize empty ratings array
     });
     await video.save();
     
@@ -131,16 +136,31 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
 });
 
 app.post('/allVideos', async (req, res) => {
-  const videos = await Video.find({}).populate('aboutPoints').select('name videoUrl aboutPoints rating');
-  res.status(200).send(videos);
+  try {
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
+    res.status(200).send(videos);
+  } catch (error) {
+    console.error("Error fetching videos:", error);
+    res.status(500).json({ error: 'Error fetching videos' });
+  }
 });
 
 app.post('/rate', async (req, res) => {
   const { videoid, rating } = req.body;
-  const video = await Video.findById(videoid);
-  video.aboutPoints.push(rating);
-  await video.save();
-  res.status(200).json({ message: 'Rating added' });
+  try {
+    const video = await Video.findById(videoid);
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    // Add rating to the ratings array (not aboutPoints)
+    video.ratings.push(parseInt(rating));
+    await video.save();
+    res.status(200).json({ message: 'Rating added' });
+  } catch (error) {
+    console.error("Error adding rating:", error);
+    res.status(500).json({ error: 'Error adding rating' });
+  }
 })
 
 app.post('/getVid', async (req, res) => {

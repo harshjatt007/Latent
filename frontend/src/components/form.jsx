@@ -102,7 +102,7 @@ const FormComponent = () => {
         key: "rzp_test_jX0Zhni0nTh4Wp", // Replace with your Razorpay key ID
         amount: data.amount,
         currency: "INR",
-        name: "Latent",
+        name: "Your Company Name",
         description: "Payment for Video Upload",
         order_id: data.id,
         handler: function (response) {
@@ -260,7 +260,9 @@ const FormComponent = () => {
       fData.append("address", formData.address);
       fData.append("age", formData.age);
       fData.append("rating", formData.rating);
-      fData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
+      // Convert aboutPoints to numbers for backend compatibility
+      const aboutPointsAsNumbers = formData.aboutPoints.map((_, index) => index + 1);
+      fData.append("aboutPoints", JSON.stringify(aboutPointsAsNumbers));
 
       try {
         console.log("Uploading to:", API_ENDPOINTS.fileUpload);
@@ -272,24 +274,12 @@ const FormComponent = () => {
           aboutPoints: formData.aboutPoints
         });
         
-        // Test if backend is accessible
-        try {
-          const healthCheck = await fetch(`${API_BASE_URL}/`, {
-            method: 'GET',
-          });
-          console.log("Backend health check status:", healthCheck.status);
-        } catch (healthError) {
-          console.warn("Backend health check failed:", healthError);
-        }
-        
-        // Temporary workaround: Try to create a user first if the upload fails
-        let uploadResponse = await fetch(API_ENDPOINTS.fileUpload, {
+        const uploadResponse = await fetch(API_ENDPOINTS.fileUpload, {
           method: "POST",
           body: fData,
         });
 
         console.log("Response status:", uploadResponse.status);
-        console.log("Response headers:", uploadResponse.headers);
 
         if (!uploadResponse.ok) {
           const errorText = await uploadResponse.text();
@@ -299,40 +289,6 @@ const FormComponent = () => {
           let errorMessage = `HTTP error! status: ${uploadResponse.status}`;
           try {
             const errorJson = JSON.parse(errorText);
-            if (errorJson.error && errorJson.error.includes("User not found")) {
-              // Try to create a user first, then upload again
-              console.log("User not found, attempting to create user...");
-              
-              // Create a simple user with the form name
-              const userData = {
-                firstName: formData.name,
-                lastName: "User",
-                email: `${formData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
-                password: "tempPassword123"
-              };
-              
-              try {
-                const userResponse = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(userData),
-                });
-                
-                if (userResponse.ok) {
-                  console.log("User created successfully, retrying upload...");
-                  // Retry the upload
-                  uploadResponse = await fetch(API_ENDPOINTS.fileUpload, {
-                    method: "POST",
-                    body: fData,
-                  });
-                }
-              } catch (userError) {
-                console.error("Failed to create user:", userError);
-              }
-            }
-            
             if (errorJson.error) {
               errorMessage = errorJson.error;
             }
@@ -340,9 +296,7 @@ const FormComponent = () => {
             errorMessage += ` - ${errorText}`;
           }
           
-          if (!uploadResponse.ok) {
-            throw new Error(errorMessage);
-          }
+          throw new Error(errorMessage);
         }
 
         const data = await uploadResponse.json();
