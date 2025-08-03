@@ -138,6 +138,23 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
 app.post('/allVideos', async (req, res) => {
   try {
     const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
+    
+    // Sort videos by average rating (from ratings array) in descending order
+    videos.sort((a, b) => {
+      // Calculate average rating for video a
+      const avgRatingA = a.ratings.length > 0 
+        ? a.ratings.reduce((sum, rating) => sum + rating, 0) / a.ratings.length 
+        : 0;
+      
+      // Calculate average rating for video b
+      const avgRatingB = b.ratings.length > 0 
+        ? b.ratings.reduce((sum, rating) => sum + rating, 0) / b.ratings.length 
+        : 0;
+      
+      // Sort in descending order (highest rating first)
+      return avgRatingB - avgRatingA;
+    });
+    
     res.status(200).send(videos);
   } catch (error) {
     console.error("Error fetching videos:", error);

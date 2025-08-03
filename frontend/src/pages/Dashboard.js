@@ -31,7 +31,12 @@ const UserDashboard = () => {
       // Update competition stats
       setCompetitionStats({
         totalParticipants: response.data.length,
-        topRatedVideo: response.data.length > 0 ? Math.max(...response.data.map(v => v.rating)) : 0,
+        topRatedVideo: response.data.length > 0 ? 
+          Math.max(...response.data.map(v => 
+            v.ratings.length > 0 ? 
+            v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length : 
+            0
+          )).toFixed(1) : 0,
         myCurrentRanking: response.data.length > 0 ? response.data.findIndex(v => v.name === user?.firstName) + 1 : 0
       });
     }catch(e){
