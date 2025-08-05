@@ -8,6 +8,20 @@ const http = require('http');
 const socketIo = require('socket.io');
 const Razorpay = require('razorpay');
 require('dotenv').config();
+
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('Missing required environment variables:', missingEnvVars);
+  console.error('Please set the following environment variables:');
+  missingEnvVars.forEach(envVar => {
+    console.error(`- ${envVar}`);
+  });
+  process.exit(1);
+}
+
 const app = express();
 const cors = require('cors');
 const User = require('./models/User');
@@ -64,6 +78,29 @@ app.options('*', cors(corsOptions));
 
 // Connect to MongoDB
 connectDB();
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+  });
+});
+
+// API status endpoint
+app.get('/api/status', (req, res) => {
+  res.status(200).json({
+    message: 'API is running',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      fileUpload: '/fileupload',
+      videos: '/allVideos'
+    }
+  });
+});
 
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
@@ -351,5 +388,11 @@ app.post('/create-order', async (req, res) => {
 // Start the server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`MongoDB URI: ${process.env.MONGODB_URI ? 'Set' : 'Not set'}`);
+  console.log(`JWT Secret: ${process.env.JWT_SECRET ? 'Set' : 'Not set'}`);
+}).on('error', (err) => {
+  console.error('Server failed to start:', err);
+  process.exit(1);
 });
