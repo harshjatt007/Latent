@@ -23,7 +23,10 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
   'https://latent-delta.vercel.app',
-  'https://latent-kk5m.onrender.com'
+  'https://latent-kk5m.onrender.com',
+  // Add more Vercel deployment URLs as needed
+  /^https:\/\/.*\.vercel\.app$/,
+  /^https:\/\/latent.*\.vercel\.app$/
 ];
 
 const corsOptions = {
@@ -31,7 +34,16 @@ const corsOptions = {
     console.log("CORS origin check:", origin);
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    const allowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
+    
+    const allowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin || origin.startsWith(allowedOrigin);
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
     if (allowed) {
       callback(null, true);
     } else {
@@ -39,13 +51,16 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
 };
 
 // Enable CORS
 app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Connect to MongoDB
 connectDB();
@@ -59,7 +74,12 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
   })
 );
 

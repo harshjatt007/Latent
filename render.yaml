@@ -28,19 +28,6 @@ services:
       - key: RAZORPAY_KEY_SECRET
         sync: false
 
-  - type: web
-    name: latent-frontend
-    runtime: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/build
-    envVars:
-      - key: REACT_APP_API_BASE_URL
-        fromService:
-          type: web
-          name: latent-backend
-          property: host
-          envVarKey: RENDER_EXTERNAL_URL
-
 databases:
   - name: latent-mongodb
     databaseName: latent
