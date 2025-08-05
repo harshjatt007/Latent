@@ -1,8 +1,7 @@
 services:
   - type: web
     name: latent-backend
-    env: node
-    plan: free
+    runtime: node
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
@@ -11,14 +10,26 @@ services:
       - key: PORT
         value: 5000
       - key: MONGODB_URI
-        sync: false
+        fromDatabase:
+          name: latent-mongodb
+          property: connectionString
       - key: JWT_SECRET
-        sync: false
+        generateValue: true
       - key: SESSION_SECRET
-        sync: false
+        generateValue: true
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+databases:
+  - name: latent-mongodb
+    databaseName: latent
+    user: latent
+    plan: starter
