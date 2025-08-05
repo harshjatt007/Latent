@@ -16,6 +16,9 @@ export const API_BASE_URL = isDevelopment ? API_CONFIG.development.baseURL : API
 
 // For debugging
 console.log('Environment:', isDevelopment ? 'development' : 'production');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('Hostname:', window.location.hostname);
+console.log('REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
 console.log('API Base URL:', API_BASE_URL);
 
 // API endpoints

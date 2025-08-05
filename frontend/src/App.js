@@ -22,6 +22,7 @@ import Contact from './pages/Contact';
 import Ratings from "./pages/Ratings";
 
 import VideoPlayer from "./pages/VideoPlayer.js";
+import AuthTest from "./pages/AuthTest.js";
 
 import { useAuthStore } from "./store/authStore.js";
 
@@ -108,8 +109,12 @@ function App() {
         {/* Contact Page */}
         <Route path="/contact" element={<Contact />} />
 
+        {/* Debug Page */}
+        <Route path="/auth-test" element={<AuthTest />} />
+
         {/* Signin Routes */}
         <Route path="/login" element={<RedirectAuthenticatedUser><Login /></RedirectAuthenticatedUser>} />
+        <Route path="/signup" element={<RedirectAuthenticatedUser><Signup /></RedirectAuthenticatedUser>} />
       </Routes>
     </Router>
   );
