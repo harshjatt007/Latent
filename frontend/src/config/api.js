@@ -20,6 +20,13 @@ console.log('API Base URL:', API_BASE_URL);
 
 // API endpoints
 export const API_ENDPOINTS = {
+  // Authentication endpoints
+  auth: `${API_BASE_URL}/api/auth`,
+  signup: `${API_BASE_URL}/api/auth/signup`,
+  login: `${API_BASE_URL}/api/auth/login`,
+  checkAuth: `${API_BASE_URL}/api/auth/check-auth`,
+  
+  // File and video endpoints
   fileUpload: `${API_BASE_URL}/fileupload`,
   allVideos: `${API_BASE_URL}/allVideos`,
   rate: `${API_BASE_URL}/rate`,
