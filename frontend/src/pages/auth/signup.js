@@ -85,8 +85,8 @@ const Signup = () => {
         formData.firstName,
         formData.lastName
       );
-      alert("Signup successful! Please log in.");
-      navigate("/login");
+      alert("Signup successful! Welcome!");
+      navigate("/");
     } catch (err) {
       alert(err.message);
     }

@@ -9,7 +9,7 @@ exports.verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key'); // Verify token
     req.user = decoded; // Attach the decoded user info to the request
     next();
   } catch (error) {

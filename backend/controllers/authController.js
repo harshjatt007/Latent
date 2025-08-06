@@ -31,7 +31,24 @@ exports.signup = async (req, res) => {
     // Save to database
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Generate token for immediate login after signup
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '1h' }
+    );
+
+    res.status(201).json({ 
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        avatar: newUser.avatar
+      }
+    });
   } catch (error) {
     console.error('Error during signup:', error);
     res.status(500).json({ message: 'Server error' });
@@ -57,7 +74,7 @@ exports.signin = async (req, res) => {
     // Generate token
     const token = jwt.sign(
       { id: existingUser._id, email: existingUser.email },
-      process.env.JWT_SECRET, // Use an environment variable for the secret key
+      process.env.JWT_SECRET || 'fallback-secret-key', // Use an environment variable for the secret key
       { expiresIn: '1h' } // Token expiration time
     );
 
@@ -70,6 +87,7 @@ exports.signin = async (req, res) => {
         firstName: existingUser.firstName,
         lastName: existingUser.lastName,
         email: existingUser.email,
+        avatar: existingUser.avatar,
       },
     });
   } catch (error) {
