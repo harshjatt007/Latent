@@ -9,7 +9,7 @@ const API_CONFIG = {
 };
 
 // Get current environment
-const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
+const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 // Export the appropriate base URL
 export const API_BASE_URL = isDevelopment ? API_CONFIG.development.baseURL : API_CONFIG.production.baseURL;
