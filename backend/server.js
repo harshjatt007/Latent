@@ -3,6 +3,7 @@ const passport = require('passport');
 const session = require('express-session');
 const authRoutes = require('./routes/auth');
 const formRoutes = require('./routes/formRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 const connectDB = require('./config/db');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -215,6 +216,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api', contactRoutes);
 
 app.post('/api/updateProfile', async (req, res) => {
   try {

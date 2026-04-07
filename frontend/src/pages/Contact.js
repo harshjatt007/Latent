@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -29,12 +31,18 @@ const Contact = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      alert('Form submitted successfully!');
-      setFormData({ name: '', email: '', message: '' }); // Reset form
-      navigate('/'); // Redirect to home route
+      try {
+        await axios.post(`${API_BASE_URL}/api/contact`, formData);
+        alert('Form submitted successfully!');
+        setFormData({ name: '', email: '', message: '' }); // Reset form
+        navigate('/'); // Redirect to home route
+      } catch (error) {
+        alert('Failed to send message. Please try again.');
+        console.error('Contact form error:', error);
+      }
     }
   };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
 import { motion } from 'framer-motion';
-import logo from '../assets/logo.png';
+import logo from '../assets/latent_icon.png';
 import { useAuthStore } from '../store/authStore';
 import { Link } from 'react-router-dom'
 
@@ -29,7 +29,6 @@ const Navbar = () => {
 
   const navLinks = [
     { label: 'Battles', path: '/battle', type: 'route' },
-    { label: 'Blog', path: 'blog-section', type: 'scroll' },
     { label: 'Contact', path: '/contact', type: 'route' }
   ];
 

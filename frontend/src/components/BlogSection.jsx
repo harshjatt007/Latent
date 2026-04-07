@@ -43,7 +43,7 @@ const BlogSection = () => {
             <p className="text-sm font-medium">Admin</p>
             <p className="text-sm">Mar 22, 2023 · 2 min read</p>
             <h2 className="text-lg font-semibold mt-2">
-              5 Brands that do it right
+              Stunt related video!
             </h2>
             <div className="flex items-center justify-between text-sm mt-4">
               <div className="flex items-center gap-2">

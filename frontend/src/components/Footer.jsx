@@ -29,11 +29,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="text-purple-500" />
-                <span>+91 7 643 826 643</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="text-purple-500" />
-                <span>+91 8 084 123 158</span>
+                <span>+91 9906215513</span>
               </div>
             </div>
           </div>
@@ -42,10 +38,10 @@ const Footer = () => {
           <div>
             <h3 className="text-2xl font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="hover:text-purple-500">About Us</a></li>
-              <li><a href="#" className="hover:text-purple-500">How It Works</a></li>
-              <li><a href="#" className="hover:text-purple-500">FAQ</a></li>
-              <li><a href="#" className="hover:text-purple-500">Terms of Service</a></li>
+              <li><a href="/" className="hover:text-purple-500">About Us</a></li>
+              <li><a href="/" className="hover:text-purple-500">How It Works</a></li>
+              <li><a href="/" className="hover:text-purple-500">FAQ</a></li>
+              <li><a href="/" className="hover:text-purple-500">Terms of Service</a></li>
             </ul>
           </div>
 
@@ -54,9 +50,6 @@ const Footer = () => {
             <h3 className="text-2xl font-bold mb-4">Connect With Us</h3>
             {/* Social Media Icons */}
             <div className="flex space-x-4 mt-4">
-              <a href="https://facebook.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
-                <Facebook size={24} />
-              </a>
               <a href="https://twitter.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
                 <Twitter size={24} />
               </a>

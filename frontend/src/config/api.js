@@ -1,7 +1,7 @@
 // API Configuration for different environments
 const API_CONFIG = {
   development: {
-    baseURL: 'http://localhost:5000',
+    baseURL: 'https://latent-kk5m.onrender.com', // Use remote while local mongo is down
   },
   production: {
     baseURL: 'https://latent-kk5m.onrender.com',
