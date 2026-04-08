@@ -183,6 +183,10 @@
 import React, { useState, useEffect } from "react";
 import { Trophy, VideoIcon, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
+import UserAvatar from "./components/UserAvatar";
 
 const Dashboard = () => {
   const [videos, setVideos] = useState([]);
@@ -252,26 +256,28 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-2xl font-bold text-white">
-            Talent Showcase Admin Dashboard
-          </h1>
-        </motion.div>
-      </header>
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500 font-sans">
+      <Navbar />
+      <div className="flex-grow pt-[120px] pb-20 p-8">
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tighter uppercase italic">
+              Admin Showcase Control
+            </h1>
+          </motion.div>
+        </header>
 
       {/* Winner Section */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
+        className="bg-white dark:bg-gray-900 shadow-2xl rounded-[2.5rem] p-10 mb-8 border border-gray-100 dark:border-gray-800"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">
@@ -280,9 +286,10 @@ const Dashboard = () => {
           <Trophy className="text-yellow-500" size={32} />
         </div>
         {topPerformer ? (
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
+            <UserAvatar name={topPerformer.participantName} size="w-16 h-16" textClass="text-xl" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
                 {topPerformer.participantName}
               </h3>
               <p className="text-gray-600">{topPerformer.videoTitle}</p>
@@ -305,7 +312,7 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-[#EBEAFF] shadow-md rounded-lg p-6"
+        className="bg-white dark:bg-gray-900 shadow-2xl rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800"
       >
         <h3 className="text-lg font-bold text-gray-800 mb-4">
           Video Submissions
@@ -328,8 +335,11 @@ const Dashboard = () => {
                   key={video.id}
                   className="border-b border-gray-200 hover:bg-gray-100"
                 >
-                  <td className="py-3 px-6 text-left whitespace-nowrap">
-                    <span className="font-medium">{video.participantName}</span>
+                  <td className="py-4 px-6 text-left whitespace-nowrap">
+                    <div className="flex items-center gap-4">
+                      <UserAvatar name={video.participantName} size="w-10 h-10" textClass="text-xs" />
+                      <span className="font-bold text-gray-900 dark:text-white">{video.participantName}</span>
+                    </div>
                   </td>
                   <td className="py-3 px-6 text-left">
                     <span>{video.videoTitle}</span>
@@ -361,6 +371,8 @@ const Dashboard = () => {
           </table>
         </div>
       </motion.section>
+      </div>
+      <Footer />
     </div>
   );
 };

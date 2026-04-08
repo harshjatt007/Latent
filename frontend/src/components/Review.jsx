@@ -33,7 +33,7 @@ const Review = () => {
   return (
     <div
       ref={sectionRef}
-      className="flex flex-col md:flex-row items-center justify-between px-16 py-16 bg-white font-quicksand mt-10 mb-16"
+      className="flex flex-col md:flex-row items-center justify-between px-16 py-20 bg-white dark:bg-gray-900 font-quicksand mt-10 mb-16 rounded-[3rem] shadow-sm border border-gray-100 dark:border-gray-800 transition-all duration-500"
     >
       {/* Left Content */}
       <div
@@ -41,21 +41,19 @@ const Review = () => {
           isVisible ? "translate-x-0 opacity-100" : "-translate-x-10"
         }`}
       >
-        <h1 className="text-blue-600 font-bold text-3xl md:text-4xl leading-tight">
+        <h1 className="text-blue-600 dark:text-blue-400 font-black text-3xl md:text-5xl tracking-tighter">
           Hello, I’m Alice!
         </h1>
-        <h2 className="text-blue-600 font-semibold text-2xl md:text-3xl leading-snug">
+        <h2 className="text-blue-600/80 dark:text-blue-300 font-bold text-2xl md:text-3xl tracking-tight leading-snug">
           Here to take your Social Media to another level
         </h2>
-        <p className="text-gray-600 text-base md:text-lg leading-relaxed">
+        <p className="text-gray-600 dark:text-gray-400 text-lg md:text-xl font-medium leading-relaxed italic border-l-4 border-blue-100 dark:border-blue-900 pl-6">
           "I am Alice from goa, and I’ve had an amazing experience using *Latent*! The
           platform is incredibly engaging, offering a unique way to showcase
           talent and connect with a vibrant community. The voting and prize
           features add an exciting layer of competition, making every
           interaction fun and rewarding. Its user-friendly interface and
-          seamless functionality make it a pleasure to navigate. I highly
-          recommend *Latent* to anyone looking to display their skills or simply
-          enjoy discovering incredible talents!"
+          seamless functionality make it a pleasure to navigate..."
         </p>
       </div>
 

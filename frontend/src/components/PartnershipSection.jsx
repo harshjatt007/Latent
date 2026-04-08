@@ -25,8 +25,8 @@ const PartnershipSection = () => {
   ];
 
   return (
-    <div className="relative overflow-hidden bg-white py-10">
-      <h2 className="text-center text-customBlue text-2xl font-semibold mb-8 pb-10">
+    <div className="relative overflow-hidden bg-white dark:bg-gray-950 py-16 transition-colors duration-500">
+      <h2 className="text-center text-customBlue dark:text-blue-400 text-3xl font-black mb-12 tracking-tighter uppercase italic">
         Brands & Partnerships
       </h2>
 
@@ -37,7 +37,7 @@ const PartnershipSection = () => {
           {logos.map((logo, index) => (
             <div
               key={index}
-              className="w-40 flex-shrink-0 flex items-center justify-center px-4 mx-8"
+              className="w-40 flex-shrink-0 flex items-center justify-center px-4 mx-8 grayscale hover:grayscale-0 dark:invert dark:opacity-70 dark:hover:opacity-100 transition-all duration-300"
             >
               <img
                 src={logo}
@@ -51,7 +51,7 @@ const PartnershipSection = () => {
           {logos.map((logo, index) => (
             <div
               key={`duplicate-${index}`}
-              className="w-40 flex-shrink-0 flex items-center justify-center mx-8 px-4"
+              className="w-40 flex-shrink-0 flex items-center justify-center mx-8 px-4 grayscale hover:grayscale-0 dark:invert dark:opacity-70 dark:hover:opacity-100 transition-all duration-300"
             >
               <img
                 src={logo}

@@ -28,6 +28,6 @@ const VideoSchema = new mongoose.Schema({
     type: [Number], // New field for actual ratings (1-5)
     default: []
   }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Video", VideoSchema);

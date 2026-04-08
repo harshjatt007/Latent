@@ -17,13 +17,13 @@ const FeatureCard = ({ icon: Icon, color, title, description }) => (
   <motion.div 
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
-    className="bg-white p-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group"
+    className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group ring-1 ring-gray-100 dark:ring-gray-700"
   >
     <div className="flex items-center mb-3">
       <Icon className={`${color} mr-3 group-hover:rotate-12 transition-transform`} size={32} />
-      <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+      <h3 className="text-xl font-bold text-gray-800 dark:text-white transition-colors">{title}</h3>
     </div>
-    <p className="text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+    <p className="text-gray-600 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
       {description}
     </p>
   </motion.div>
@@ -95,7 +95,7 @@ const BodySection = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen flex items-center overflow-hidden">
+    <div className="bg-white dark:bg-gray-950 min-h-screen flex items-center overflow-hidden transition-colors duration-500">
       <div className="container mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between relative">
         {/* Floating Decorative Shapes */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -111,10 +111,10 @@ const BodySection = () => {
           transition={{ duration: 0.8 }}
           className="md:w-1/2 space-y-6 text-center md:text-left z-10"
         >
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 leading-tight">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 dark:from-purple-400 dark:to-blue-400 leading-tight">
             Unleash Your Talent
           </h1>
-          <p className="text-xl text-gray-600 mb-6">
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-6 transition-colors font-medium">
             Your platform to shine, compete, and inspire the world.
           </p>
 

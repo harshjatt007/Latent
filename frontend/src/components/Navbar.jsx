@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.png';
 import { useAuthStore } from '../store/authStore';
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import { RopeLightSwitch } from '../context/ThemeContext';
+import { API_BASE_URL } from '../config/api';
+import UserAvatar from './UserAvatar';
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -14,7 +17,7 @@ const Navbar = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, logout, user } = useAuthStore();
+  const { isAuthenticated, logout, user, isCheckingAuth } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,9 +30,20 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  // Close profile menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isProfileMenuOpen && !e.target.closest('.profile-menu-container')) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isProfileMenuOpen]);
+
   const navLinks = [
+    { label: 'Home', path: '/', type: 'route' },
     { label: 'Battles', path: '/battle', type: 'route' },
-    { label: 'Blog', path: 'blog-section', type: 'scroll' },
     { label: 'Contact', path: '/contact', type: 'route' }
   ];
 
@@ -46,7 +60,7 @@ const Navbar = () => {
         y: isVisible ? 0 : -100,
         transition: { duration: 0.3 }
       }}
-      className="fixed top-0 left-0 w-full z-50 bg-white shadow-md"
+      className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-gray-900 shadow-md dark:shadow-gray-800/30 transition-colors duration-300"
     >
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
@@ -56,10 +70,10 @@ const Navbar = () => {
           onClick={() => navigate('/')}
           className="cursor-pointer"
         >
-          <img src={logo} alt="Logo" className="h-12 w-auto object-contain" />
+          <img src={logo} alt="Latent Logo" className="h-12 w-auto object-contain" />
         </motion.div>
 
-        {/* Navigation Links */}
+        {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
           {navLinks.map((link) =>
             link.type === 'scroll' ? (
@@ -69,7 +83,7 @@ const Navbar = () => {
                 smooth={true}
                 duration={500}
                 offset={-70}
-                className="text-customBlue hover:text-blue-700 transition-colors cursor-pointer"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer font-medium"
               >
                 {link.label}
               </ScrollLink>
@@ -79,8 +93,9 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleNavigation(link)}
-                className={`text-customBlue hover:text-blue-700 transition-colors ${location.pathname === link.path ? 'font-bold' : ''
-                  }`}
+                className={`text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium ${
+                  location.pathname === link.path ? 'text-blue-600 dark:text-blue-400 font-bold' : ''
+                }`}
               >
                 {link.label}
               </motion.button>
@@ -88,52 +103,119 @@ const Navbar = () => {
           )}
 
           {isAuthenticated ? (
-            <>
-              <img
-                src="https://avatar.iran.liara.run/public"
-                alt="Profile"
-                className="relative inline-block h-12 w-12 cursor-pointer rounded-full object-cover"
-                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-              />
+            <div className="flex items-center gap-4">
+              <div className="relative profile-menu-container" onClick={() => setIsProfileMenuOpen((prev) => !prev)}>
+                  <UserAvatar user={user} />
 
-              {isProfileMenuOpen && (
-                <ul
-                  role="menu"
-                  className="absolute right-0 top-10 z-10 flex flex-col min-w-[180px] gap-2 rounded-md border bg-white p-3 text-sm shadow-lg"
-                >
-                  <a href="/profile">
-                    <button className="menu-item">My Profile</button>
-                  </a>
-                  <a href="/dashboard">
-                    <button className="menu-item">Dashboard</button>
-                  </a>
-                  <Link to={'/ratings'}>Rating</Link>
-                  <hr className="my-2" />
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsProfileMenuOpen(false);
-                    }}
-                    className="menu-item text-red-500 hover:text-red-700"
+                <AnimatePresence>
+                  {isProfileMenuOpen && (
+                  <motion.ul
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    role="menu"
+                    className="absolute right-0 top-14 z-10 flex flex-col min-w-[180px] gap-1 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-2 text-sm shadow-xl"
                   >
-                    Logout
-                  </button>
-                </ul>
-              )}
-            </>
+                    <Link
+                      to="/profile"
+                      className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-medium"
+                    >
+                      My Profile
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/ratings"
+                      className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-medium"
+                    >
+                      Ratings
+                    </Link>
+                    <hr className="my-1 border-gray-200 dark:border-gray-600" />
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsProfileMenuOpen(false);
+                        navigate('/');
+                      }}
+                      className="px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition text-left font-medium"
+                    >
+                      Logout
+                    </button>
+                  </motion.ul>
+                )}
+                </AnimatePresence>
+              </div>
+              <RopeLightSwitch />
+            </div>
           ) : (
-            // Signup button when not logged in
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/signup')}
-              className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition"
-            >
-              Signup
-            </motion.button>
+            <div className="flex items-center gap-4">
+              <RopeLightSwitch />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/signup')}
+                className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition font-semibold shadow-md"
+              >
+                Sign Up
+              </motion.button>
+            </div>
           )}
         </div>
+
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden flex flex-col gap-1.5 p-2"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <span className={`w-6 h-0.5 bg-gray-700 dark:bg-gray-300 transition-transform ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+          <span className={`w-6 h-0.5 bg-gray-700 dark:bg-gray-300 transition-opacity ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
+          <span className={`w-6 h-0.5 bg-gray-700 dark:bg-gray-300 transition-transform ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 px-4 pb-4 overflow-hidden"
+          >
+            <div className="flex flex-col gap-3 pt-3">
+              {navLinks.map((link) => (
+                <button
+                  key={link.label}
+                  onClick={() => handleNavigation(link)}
+                  className="text-left text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium py-2"
+                >
+                  {link.label}
+                </button>
+              ))}
+              <div className="flex items-center gap-3 py-2">
+                <span className="text-gray-500 dark:text-gray-400 text-sm">Theme:</span>
+                <RopeLightSwitch />
+              </div>
+              {!isCheckingAuth && (
+                isAuthenticated ? (
+                  <>
+                    <Link to="/profile" className="text-gray-700 dark:text-gray-300 font-medium py-2">Profile</Link>
+                    <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 font-medium py-2">Dashboard</Link>
+                    <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-red-500 font-medium py-2 text-left">Logout</button>
+                  </>
+                ) : (
+                  <button onClick={() => { navigate('/signup'); setIsMobileMenuOpen(false); }} className="bg-blue-600 text-white rounded-lg py-2 font-semibold">Sign Up</button>
+                )
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };

@@ -3,6 +3,7 @@ const passport = require('passport');
 const session = require('express-session');
 const authRoutes = require('./routes/auth');
 const formRoutes = require('./routes/formRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 const connectDB = require('./config/db');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -58,6 +59,7 @@ const corsOptions = {
 
 // Enable CORS
 app.use(cors(corsOptions));
+app.use('/uploads', express.static('uploads'));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
@@ -102,10 +104,11 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 10000000 },
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(mp4|mkv|avi)$/)) {
-      return cb(new Error('Only video files are allowed!'));
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only images and videos are allowed!'), false);
     }
-    cb(null, true);
   }
 });
 app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
@@ -158,27 +161,61 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
 app.post('/allVideos', async (req, res) => {
   try {
     const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
-    
-    // Sort videos by average rating (from ratings array) in descending order
-    videos.sort((a, b) => {
-      // Calculate average rating for video a
-      const avgRatingA = a.ratings.length > 0 
-        ? a.ratings.reduce((sum, rating) => sum + rating, 0) / a.ratings.length 
-        : 0;
-      
-      // Calculate average rating for video b
-      const avgRatingB = b.ratings.length > 0 
-        ? b.ratings.reduce((sum, rating) => sum + rating, 0) / b.ratings.length 
-        : 0;
-      
-      // Sort in descending order (highest rating first)
-      return avgRatingB - avgRatingA;
-    });
-    
     res.status(200).send(videos);
   } catch (error) {
     console.error("Error fetching videos:", error);
     res.status(500).json({ error: 'Error fetching videos' });
+  }
+});
+
+// Dynamic Battle Summary API
+app.get('/api/battles/summary', async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+    // Ongoing: Today's videos (uploaded since midnight)
+    const ongoingVideos = await Video.find({
+      createdAt: { $gte: startOfToday }
+    }).select('name videoUrl aboutPoints rating age address ratings createdAt');
+
+    // Previous: Yesterday's videos (uploaded between yesterday and today's midnight)
+    // If today just started and no videos yet, we might want to look at "current" versus "previous" differently.
+    // But as per user: "at 12 am of next day we announce the winner then next contest starts"
+    const yesterdayVideos = await Video.find({
+      createdAt: { $gte: startOfYesterday, $lt: startOfToday }
+    }).select('name videoUrl aboutPoints rating age address ratings createdAt');
+
+    // Winner selection logic
+    let winner = null;
+    if (yesterdayVideos.length > 0) {
+      yesterdayVideos.sort((a, b) => {
+        const avgA = a.ratings.length > 0 ? a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length : 0;
+        const avgB = b.ratings.length > 0 ? b.ratings.reduce((s, r) => s + r, 0) / b.ratings.length : 0;
+        
+        // Priority 1: Exact matches (Jury Rating === Audience Average)
+        const matchA = Math.abs(avgA - a.rating) < 0.1 ? 1 : 0;
+        const matchB = Math.abs(avgB - b.rating) < 0.1 ? 1 : 0;
+        
+        if (matchA !== matchB) return matchB - matchA;
+        // Priority 2: Highest Average Rating
+        return avgB - avgA;
+      });
+      winner = yesterdayVideos[0];
+    }
+
+    res.status(200).json({
+      success: true,
+      ongoing: ongoingVideos,
+      winner: winner,
+      timestamp: now,
+      serverTime: now.toISOString()
+    });
+  } catch (error) {
+    console.error("Error in battle summary:", error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -215,6 +252,21 @@ app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api', contactRoutes);
+
+// Admin: Delete a video by ID
+app.delete('/api/admin/video/:id', async (req, res) => {
+  try {
+    const video = await Video.findByIdAndDelete(req.params.id);
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    res.status(200).json({ success: true, message: 'Video deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting video:', err);
+    res.status(500).json({ message: 'Error deleting video' });
+  }
+});
 
 app.post('/api/updateProfile', async (req, res) => {
   try {

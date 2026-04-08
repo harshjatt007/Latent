@@ -1,7 +1,7 @@
 // API Configuration for different environments
 const API_CONFIG = {
   development: {
-    baseURL: 'http://localhost:5000',
+    baseURL: 'https://latent-kk5m.onrender.com', // Use remote while local mongo is down
   },
   production: {
     baseURL: 'https://latent-kk5m.onrender.com',
@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
   allVideos: `${API_BASE_URL}/allVideos`,
   rate: `${API_BASE_URL}/rate`,
   getVid: `${API_BASE_URL}/getVid`,
+  battleSummary: `${API_BASE_URL}/api/battles/summary`,
 };
 
 // Log all endpoints for debugging

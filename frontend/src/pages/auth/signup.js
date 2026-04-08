@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -83,7 +85,8 @@ const Signup = () => {
         formData.email,
         password,
         formData.firstName,
-        formData.lastName
+        formData.lastName,
+        formData.role || 'user'
       );
       alert("Signup successful! Please log in.");
       navigate("/login");
@@ -98,19 +101,20 @@ const Signup = () => {
   };
 
   return (
-    <div className="relative w-full h-screen flex">
-      <div className="left w-full lg:w-1/2 flex flex-col justify-center items-center bg-blue-100">
-        <div className="w-3/4 max-w-md">
-          <h1 className="text-2xl font-bold text-gray-800">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500">
+      <Navbar />
+      <div className="flex-grow flex items-center justify-center pt-[120px] pb-20 px-4">
+        <div className="w-full max-w-xl p-10 bg-white dark:bg-gray-900 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-800 transition-all duration-300">
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter uppercase italic text-center mb-2">
             Start your journey
           </h1>
-          <h2 className="text-lg text-gray-600 mb-6">Sign Up to Latent</h2>
+          <h2 className="text-gray-500 dark:text-gray-400 text-center mb-10 font-medium">Sign Up to Latent</h2>
 
-          <form className="space-y-4" onSubmit={handleSignUp}>
-            <div className="flex space-x-4">
+          <form className="space-y-6" onSubmit={handleSignUp}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {["firstName", "lastName"].map((field) => (
-                <div key={field} className="w-1/2">
-                  <label htmlFor={field} className="text-gray-700">
+                <div key={field} className="space-y-2">
+                  <label htmlFor={field} className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-4">
                     {field === "firstName" ? "First Name" : "Last Name"}
                   </label>
                   <input
@@ -118,102 +122,126 @@ const Signup = () => {
                     id={field}
                     value={formData[field]}
                     onChange={(e) => handleInputChange(field, e.target.value)}
-                    placeholder={
-                      field === "firstName" ? "First Name" : "Last Name"
-                    }
-                    className="w-full"
+                    placeholder={field === "firstName" ? "First Name" : "Last Name"}
+                    className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white ${
+                      errors[field] ? "border-red-500" : ""
+                    }`}
                   />
                   {errors[field] && (
-                    <p className="text-red-500 text-sm">{errors[field]}</p>
+                    <p className="text-red-500 text-[10px] font-bold pl-4 uppercase tracking-wider">{errors[field]}</p>
                   )}
                 </div>
               ))}
             </div>
 
-            <div>
-              <label htmlFor="email" className="text-gray-700">
-                Email
+            <div className="space-y-2">
+              <label htmlFor="role" className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-4">
+                Select Role
+              </label>
+              <select
+                id="role"
+                value={formData.role || "user"}
+                onChange={(e) => handleInputChange("role", e.target.value)}
+                className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white"
+              >
+                <option value="user">Audience</option>
+                <option value="contestant">Contestant</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-4">
+                Email Address
               </label>
               <input
                 type="email"
                 id="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="Email"
-                className="w-full"
+                placeholder="Enter your email address"
+                className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white ${
+                  errors.email ? "border-red-500" : ""
+                }`}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
+                <p className="text-red-500 text-[10px] font-bold pl-4 uppercase tracking-wider">{errors.email}</p>
               )}
             </div>
 
-            <div>
-              <label htmlFor="password" className="text-gray-700">
-                Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  validateField("password", e.target.value);
-                }}
-                placeholder="Password"
-                className="w-full"
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-4">
+                  Password
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    validateField("password", e.target.value);
+                  }}
+                  placeholder="Enter password"
+                  className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white ${
+                    errors.password ? "border-red-500" : ""
+                  }`}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-[10px] font-bold pl-4 uppercase tracking-wider">{errors.password}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-4">
+                  Confirm Password
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    validateField("confirmPassword", e.target.value);
+                  }}
+                  placeholder="Confirm password"
+                  className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white ${
+                    errors.confirmPassword ? "border-red-500" : ""
+                  }`}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-[10px] font-bold pl-4 uppercase tracking-wider">{errors.confirmPassword}</p>
+                )}
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="text-gray-700">
-                Confirm Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  validateField("confirmPassword", e.target.value);
-                }}
-                placeholder="Confirm Password"
-                className="w-full"
-              />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <div className="flex items-center mt-2">
-              <label className="flex items-center space-x-2">
+            <div className="flex items-center mt-4 px-4">
+              <label className="flex items-center space-x-3 cursor-pointer group">
                 <input
                   type="checkbox"
                   onChange={() => setShowPassword(!showPassword)}
-                  className="form-checkbox"
+                  className="w-5 h-5 rounded-lg border-2 border-gray-200 dark:border-gray-700 text-blue-600 focus:ring-blue-500 transition-all"
                 />
-                <span className="text-sm text-gray-600">Show Password</span>
+                <span className="text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-blue-600 transition-colors uppercase tracking-widest">Reveal Password</span>
               </label>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-md mt-4"
+              className="w-full py-5 bg-blue-600 text-white font-black rounded-[1.5rem] hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-blue-600/20 uppercase tracking-widest text-sm mt-4"
               disabled={isLoading}
             >
-              {isLoading ? "Signing Up..." : "Sign Up"}
+              {isLoading ? "Creating Account..." : "Confirm Entry"}
             </button>
           </form>
 
-          <div className="mt-4">
-            <p className="text-sm text-gray-600">
-              Already have an account? <a href="/login">Login</a>
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-tight">
+              Existing user? <a href="/login" className="text-blue-600 font-black hover:underline uppercase text-xs tracking-widest ml-1">Log In</a>
             </p>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
