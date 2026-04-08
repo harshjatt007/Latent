@@ -16,19 +16,24 @@ const handleError = (error) => {
 
 export const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       error: null,
       isLoading: false,
-      isCheckingAuth: true,
+      isCheckingAuth: false, // start false so persisted state shows immediately
 
-      signup: async (email, password, firstName, lastName) => {
+      signup: async (email, password, firstName, lastName, role = 'user') => {
         set({ isLoading: true, error: null });
         try {
-          const res = await axios.post(`${API_URL}/signup`, { email, password, firstName, lastName });
+          const res = await axios.post(`${API_URL}/signup`, { email, password, firstName, lastName, role });
           if (res.data.token) localStorage.setItem("token", res.data.token);
-          set({ user: res.data.user, isAuthenticated: true, isLoading: false });
+          // Backend now returns user + token on signup
+          if (res.data.user) {
+            set({ user: res.data.user, isAuthenticated: true, isLoading: false });
+          } else {
+            set({ isLoading: false });
+          }
         } catch (err) {
           const msg = handleError(err);
           console.error("Signup error:", msg);
@@ -52,14 +57,17 @@ export const useAuthStore = create(
       },
 
       logout: () => {
-        localStorage.clear();
+        localStorage.removeItem("token");
         set({ user: null, isAuthenticated: false });
       },
 
       checkAuth: async () => {
         const token = localStorage.getItem("token");
-        if (!token) return set({ isCheckingAuth: false, isAuthenticated: false });
-
+        if (!token) {
+          set({ isCheckingAuth: false, isAuthenticated: false, user: null });
+          return;
+        }
+        // Don't reset isAuthenticated here — keep persisted state visible
         set({ isCheckingAuth: true });
         try {
           const res = await axios.get(`${API_URL}/check-auth`, {
@@ -68,15 +76,19 @@ export const useAuthStore = create(
           const user = res.data.user;
           set({ user, isAuthenticated: !!user, isCheckingAuth: false });
         } catch (err) {
-          const msg = handleError(err);
-          console.error("Check auth error:", msg);
-          set({ error: msg, isCheckingAuth: false, isAuthenticated: false });
+          // Token expired/invalid — clear it
+          localStorage.removeItem("token");
+          set({ error: null, isCheckingAuth: false, isAuthenticated: false, user: null });
         }
       },
     }),
     {
       name: "auth-storage",
-      getStorage: () => localStorage,
+      // Only persist user + isAuthenticated so it shows instantly on load
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

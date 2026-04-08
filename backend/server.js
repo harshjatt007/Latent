@@ -25,52 +25,35 @@ const allowedOrigins = [
   'https://latent-u5prcrsl0-abhishek1161be22-chitkaraedus-projects.vercel.app',
   'https://latent-delta.vercel.app',
   'https://latent-kk5m.onrender.com',
-  // Add more Vercel deployment URLs as needed
   /^https:\/\/.*\.vercel\.app$/,
   /^https:\/\/latent.*\.vercel\.app$/
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log("CORS origin check:", origin);
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
     const allowed = allowedOrigins.some(allowedOrigin => {
-      if (typeof allowedOrigin === 'string') {
-        return origin === allowedOrigin || origin.startsWith(allowedOrigin);
-      } else if (allowedOrigin instanceof RegExp) {
-        return allowedOrigin.test(origin);
-      }
+      if (typeof allowedOrigin === 'string') return origin === allowedOrigin || origin.startsWith(allowedOrigin);
+      if (allowedOrigin instanceof RegExp) return allowedOrigin.test(origin);
       return false;
     });
-    
-    if (allowed) {
-      callback(null, true);
-    } else {
-      console.error("CORS origin rejected:", origin);
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (allowed) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
 };
 
-// Enable CORS
 app.use(cors(corsOptions));
-
-// Handle preflight requests
+app.use('/uploads', express.static('uploads'));
 app.options('*', cors(corsOptions));
 
-// Connect to MongoDB
 connectDB();
 
-// Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session setup
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
@@ -79,11 +62,10 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000
     }
   })
 );
-
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -93,38 +75,31 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'uploads',
-    resource_type: 'auto',
-  }
+  params: { folder: 'uploads', resource_type: 'auto' }
 });
 
 const upload = multer({
   storage: storage,
   limits: { fileSize: 10000000 },
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(mp4|mkv|avi)$/)) {
-      return cb(new Error('Only video files are allowed!'));
-    }
-    cb(null, true);
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) cb(null, true);
+    else cb(new Error('Only images and videos are allowed!'), false);
   }
 });
+
 app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
-  console.log("file:", req.file.path);
-  console.log(req.body);
-  
-  // Create video entry regardless of user existence
-  let aboutPoints = [];
-  try {
-    aboutPoints = JSON.parse(req.body.aboutPoints);
-    // Ensure aboutPoints is an array of strings
-    if (!Array.isArray(aboutPoints)) {
-      aboutPoints = [];
-    }
-  } catch (error) {
-    console.error("Error parsing aboutPoints:", error);
-    aboutPoints = [];
+  const nowTime = new Date();
+  if (nowTime.getHours() >= 22) return res.status(400).json({ success: false, error: 'Uploads are closed (12 AM - 10 PM).' });
+
+  const userId = req.body.userId || req.body.id;
+  if (userId) {
+     const startOfToday = new Date(nowTime.getFullYear(), nowTime.getMonth(), nowTime.getDate());
+     const existingVideo = await Video.findOne({ uploadedBy: String(userId), createdAt: { $gte: startOfToday } });
+     if (existingVideo) return res.status(400).json({ success: false, error: 'Limit reached (1 per day).' });
   }
+  
+  let aboutPoints = [];
+  try { aboutPoints = JSON.parse(req.body.aboutPoints || "[]"); } catch (error) { aboutPoints = []; }
 
   try {
     const video = new Video({
@@ -134,224 +109,144 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
       age: parseInt(req.body.age),
       rating: parseInt(req.body.rating),
       aboutPoints: aboutPoints,
-      ratings: [] // Initialize empty ratings array
+      uploadedBy: userId ? String(userId) : null,
+      ratings: [] 
     });
     await video.save();
-    
-    // Don't require user to exist - just create the video
-    console.log("Video saved successfully:", video._id);
-    
-    res.status(200).json({ 
-      success: true, 
-      message: 'Video uploaded successfully',
-      videoPath: req.file.path,
-      videoId: video._id
-    });
-  } catch (error) {
-    console.error("Error saving video:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Error saving video: ' + error.message
-    });
-  }
+    res.status(200).json({ success: true, message: 'Uploaded', videoPath: req.file.path, videoId: video._id });
+  } catch (error) { res.status(500).json({ success: false, error: 'Error' }); }
 });
 
 app.post('/allVideos', async (req, res) => {
   try {
-    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
-    
-    // Sort videos by average rating (from ratings array) in descending order
-    videos.sort((a, b) => {
-      // Calculate average rating for video a
-      const avgRatingA = a.ratings.length > 0 
-        ? a.ratings.reduce((sum, rating) => sum + rating, 0) / a.ratings.length 
-        : 0;
-      
-      // Calculate average rating for video b
-      const avgRatingB = b.ratings.length > 0 
-        ? b.ratings.reduce((sum, rating) => sum + rating, 0) / b.ratings.length 
-        : 0;
-      
-      // Sort in descending order (highest rating first)
-      return avgRatingB - avgRatingA;
-    });
-    
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings votedBy');
     res.status(200).send(videos);
-  } catch (error) {
-    console.error("Error fetching videos:", error);
-    res.status(500).json({ error: 'Error fetching videos' });
-  }
+  } catch (error) { res.status(500).json({ error: 'Error' }); }
+});
+
+app.get('/api/battles/summary', async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+    const ongoingVideos = await Video.find({ createdAt: { $gte: startOfToday } }).select('name videoUrl aboutPoints rating age address ratings votedBy createdAt uploadedBy');
+    const yesterdayVideos = await Video.find({ createdAt: { $gte: startOfYesterday, $lt: startOfToday } }).select('name videoUrl aboutPoints rating age address ratings votedBy createdAt uploadedBy');
+
+    const MIN_VOTES = 5;
+    const getWinners = (list) => {
+      if (list.length === 0) return [];
+      const withAvg = list.map(v => {
+        const obj = v.toObject ? v.toObject() : v;
+        const avg = obj.ratings && obj.ratings.length > 0 ? obj.ratings.reduce((s, r) => s + r, 0) / obj.ratings.length : 0;
+        return { ...obj, avgRating: avg, diff: Math.abs(avg - obj.rating) };
+      }).filter(v => (v.ratings ? v.ratings.length : 0) >= MIN_VOTES);
+
+      if (withAvg.length === 0) return [];
+      const matched = withAvg.filter(v => v.diff <= 0.5);
+      const candidates = matched.length > 0 ? matched : withAvg;
+      candidates.sort((a, b) => {
+        if (a.diff !== b.diff) return a.diff - b.diff;
+        if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating;
+        const av = a.ratings ? a.ratings.length : 0;
+        const bv = b.ratings ? b.ratings.length : 0;
+        if (av !== bv) return bv - av;
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      });
+      const winners = [candidates[0]];
+      const top = candidates[0];
+      const topVotes = top.ratings ? top.ratings.length : 0;
+      for (let i = 1; i < candidates.length; i++) {
+        const c = candidates[i];
+        const cv = c.ratings ? c.ratings.length : 0;
+        if (c.diff === top.diff && c.avgRating === top.avgRating && cv === topVotes) winners.push(c); else break;
+      }
+      return winners;
+    };
+    let winners = getWinners(yesterdayVideos);
+    res.status(200).json({ success: true, ongoing: ongoingVideos, winners, winner: winners[0] || null, timestamp: now });
+  } catch (error) { res.status(500).json({ success: false, error: error.message }); }
+});
+
+app.get('/api/battles/test-winner', async (req, res) => {
+  try {
+    const startOfToday = new Date().setHours(0,0,0,0);
+    const ongoingVideos = await Video.find({ createdAt: { $gte: startOfToday } });
+    if (ongoingVideos.length === 0) return res.json({ winners: [] });
+    const MIN_VOTES = 5;
+    const withAvg = ongoingVideos.map(v => {
+      const obj = v.toObject();
+      const avg = obj.ratings && obj.ratings.length > 0 ? obj.ratings.reduce((s, r) => s + r, 0) / obj.ratings.length : 0;
+      return { ...obj, avgRating: avg, diff: Math.abs(avg - obj.rating) };
+    }).filter(v => (v.ratings ? v.ratings.length : 0) >= MIN_VOTES);
+    if (withAvg.length === 0) return res.json({ winners: [] });
+    const matched = withAvg.filter(v => v.diff <= 0.5);
+    const candidates = matched.length > 0 ? matched : withAvg;
+    candidates.sort((a, b) => (a.diff !== b.diff ? a.diff - b.diff : b.avgRating - a.avgRating));
+    res.json({ winners: [candidates[0]], winner: candidates[0] });
+  } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 app.post('/rate', async (req, res) => {
-  const { videoid, rating } = req.body;
+  const nowTime = new Date();
+  if (nowTime.getHours() === 23 && nowTime.getMinutes() === 59) return res.status(400).json({ error: 'Locked.' });
+  const { videoid, rating, userId } = req.body;
   try {
     const video = await Video.findById(videoid);
-    if (!video) {
-      return res.status(404).json({ error: 'Video not found' });
-    }
-    
-    // Add rating to the ratings array (not aboutPoints)
+    if (!video || !userId) return res.status(400).json({ error: 'Invalid' });
+    if (video.votedBy?.includes(userId)) return res.status(400).json({ error: 'Duplicate' });
     video.ratings.push(parseInt(rating));
+    if (!video.votedBy) video.votedBy = [];
+    video.votedBy.push(userId);
     await video.save();
-    res.status(200).json({ message: 'Rating added' });
-  } catch (error) {
-    console.error("Error adding rating:", error);
-    res.status(500).json({ error: 'Error adding rating' });
-  }
-})
+    res.status(200).json({ success: true });
+  } catch (error) { res.status(500).json({ error: 'Error' }); }
+});
 
 app.post('/getVid', async (req, res) => {
   const { username } = req.body;
-  console.log(username);
   const user = await User.findOne({ firstName: username });
-  console.log(user);
-  if (!user) return res.status(400).send("Error occurred");
-  if (user.videos.length > 0) return res.send(user.videos[user.videos.length - 1]);
-  return res.status(400).send("Error occurred");
-})
+  if (!user || user.videos.length === 0) return res.status(400).send("No video");
+  return res.send(user.videos[user.videos.length - 1]);
+});
+
+app.post('/api/updateProfile', async (req, res) => {
+  const { userId, firstName, lastName, email, bio } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send("Not found");
+    user.firstName = firstName; user.lastName = lastName; user.email = email; user.bio = bio || user.bio;
+    await user.save();
+    res.status(200).send(user);
+  } catch (err) { res.status(500).send("Error"); }
+});
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', contactRoutes);
 
-app.post('/api/updateProfile', async (req, res) => {
+app.delete('/api/admin/video/:id', async (req, res) => {
   try {
-    const { userId, firstName, lastName, email, bio } = req.body;
-
-    // Validate input
-    if (!userId || !firstName || !lastName || !email) {
-      return res.status(400).json({ message: 'First name, last name, and email are required.' });
-    }
-
-    // Find the user by their ID
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    // Update user data (excluding avatar)
-    user.firstName = firstName;
-    user.lastName = lastName;
-    user.email = email;
-    user.bio = bio || user.bio; // Bio is optional in this case
-
-    // Save the updated user data in the database
-    await user.save();
-
-    // Respond with the updated profile (without avatar change)
-    res.status(200).json({
-      message: 'Profile updated successfully!',
-      userProfile: user,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+    await Video.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Error' }); }
 });
 
-// // Razorpay configuration
-// const razorpay = new Razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID, // Use environment variables for security
-//   key_secret: process.env.RAZORPAY_KEY_SECRET,
-// });
-
-// // Route to create a Razorpay order
-// app.post('/create-order', async (req, res) => {
-//   const { amount } = req.body; // Amount in INR (should be in paise)
-
-//   // Razorpay options
-//   const options = {
-//     amount: amount * 100, // Convert amount to paise (1 INR = 100 paise)
-//     currency: 'INR',
-//     receipt: `receipt#${Math.floor(Math.random() * 10000)}`,
-//   };
-
-//   try {
-//     // Create Razorpay order
-//     const order = await razorpay.orders.create(options);
-//     res.json(order);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Failed to create Razorpay order' });
-//   }
-// });
-
-// Home route
-app.get('/', (req, res) => {
-  res.send('<h1>Home Page</h1>');
+app.post('/create-order', async (req, res) => {
+  try {
+    const razorpay = new Razorpay({ key_id: 'rzp_test_jX0Zhni0nTh4Wp', key_secret: 'mGCPGnETTmsFmhXO9U48euDO' });
+    const order = await razorpay.orders.create({ amount: 100, currency: 'INR', receipt: `rcpt_${Date.now()}` });
+    res.json(order);
+  } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something went wrong!');
-});
-
-// Create HTTP server and integrate with Socket.IO
 const server = http.createServer(app);
 const io = socketIo(server);
-
-// Listen for client connections
 io.on('connection', (socket) => {
-  console.log('A user connected');
-
-  // Listen for the 'sendNotification' event from the client
-  socket.on('sendNotification', (data) => {
-    console.log('Notification received:', data);
-    // Emit the notification to all connected clients
-    io.emit('receiveNotification', { message: 'New Notification from Server!' });
-  });
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
+  socket.on('sendNotification', (data) => io.emit('receiveNotification', { message: 'New' }));
 });
 
-// Contact route
-app.get('/contact', (req, res) => {
-  res.json({
-    message: 'Welcome to the Contact Page!',
-    email: 'support@example.com',
-    phone: '+1-234-567-890',
-    address: '123 Main Street, City, Country',
-  });
-});
-
-// Razorpay configuration
-const razorpay = new Razorpay({
-  key_id: 'rzp_test_jX0Zhni0nTh4Wp',
-  key_secret: 'mGCPGnETTmsFmhXO9U48euDO',
-});
-
-// Routes
-//app.use('/api/auth', authRoutes);  // Register the auth routes
-
-// Route to create a Razorpay order
-app.post('/create-order', async (req, res) => {
-  const options = {
-    amount: 1 * 100, // ₹1 = 100 paisa
-    currency: 'INR',
-    receipt: `receipt#${Math.floor(Math.random() * 10000)}`,
-  };
-
-  try {
-    const order = await razorpay.orders.create(options);
-    res.json(order);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to create Razorpay order' });
-  }
-});
-
-
-// Start the server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server on ${PORT}`));

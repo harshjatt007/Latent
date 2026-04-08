@@ -1,20 +1,29 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const VideoPlayer = () => {
   const { filename } = useParams();
   const videoUrl = `/videos/${filename}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-      <div className="max-w-4xl w-full p-4">
-        <h2 className="text-2xl font-bold mb-4">Now Playing: {filename}</h2>
-        <video
-          src={videoUrl}
-          controls
-          className="w-full h-auto rounded-md shadow-lg"
-        />
+    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-500">
+      <Navbar />
+      <div className="flex-grow flex items-center justify-center p-8 pt-[140px] pb-20">
+        <div className="max-w-5xl w-full bg-white dark:bg-gray-900 p-10 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-800 transition-all">
+          <h2 className="text-4xl font-black mb-8 tracking-tighter uppercase italic">Now Playing: {filename}</h2>
+          <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-600/10">
+              <video
+              src={videoUrl}
+              controls
+              autoPlay
+              className="w-full h-auto"
+              />
+          </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };

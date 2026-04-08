@@ -20,13 +20,25 @@ import Battle from "./pages/Battle.js";
 import FormComponent from "./components/form";
 import Contact from './pages/Contact';
 import Ratings from "./pages/Ratings";
-
+import AboutUs from "./pages/AboutUs";
+import HowItWorks from "./pages/HowItWorks";
+import FAQ from "./pages/FAQ";
+import TermsOfService from "./pages/TermsOfService";
 import VideoPlayer from "./pages/VideoPlayer.js";
+import { ThemeProvider } from "./context/ThemeContext";
+import { Toaster } from "react-hot-toast";
 
 import { useAuthStore } from "./store/authStore.js";
+import toast from "react-hot-toast";
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error("Please login to access this page", { id: 'login-required' });
+    }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -53,8 +65,10 @@ function App() {
   }, [checkAuth]);
 
   return (
-    <Router>
-      <Routes>
+    <ThemeProvider>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Router>
+        <Routes>
         {/* Authentication Routes */}
         <Route path="/signup" element={<RedirectAuthenticatedUser><Signup /></RedirectAuthenticatedUser>} />
         <Route path="/google-auth-redirect" element={<GoogleAuthRedirect />} />
@@ -63,7 +77,7 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="bg-gray-50 min-h-screen">
+            <div className="bg-white dark:bg-gray-950 min-h-screen transition-colors duration-500">
               <Navbar />
               <div className="pt-[80px]">
                 <BodySection />
@@ -89,29 +103,40 @@ function App() {
         <Route
           path="/profile"
           element={
-            <Profile />
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/admin-dash"
           element={
-            <UserDashboard />
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
           }
         />
 
         {/* Additional Routes */}
         <Route path="/battle" element={<Battle />} />
-        <Route path="/form" element={<FormComponent />} />
+        <Route path="/form" element={<ProtectedRoute><FormComponent /></ProtectedRoute>} />
         <Route path="/video/:filename" element={<VideoPlayer />} />
-        <Route path="/ratings" element={<Ratings />} />
+        <Route path="/ratings" element={<ProtectedRoute><Ratings /></ProtectedRoute>} />
 
         {/* Contact Page */}
-        <Route path="/contact" element={<Contact />} />
+        <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+
+        {/* Quick Links Pages */}
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/terms" element={<TermsOfService />} />
 
         {/* Signin Routes */}
         <Route path="/login" element={<RedirectAuthenticatedUser><Login /></RedirectAuthenticatedUser>} />
       </Routes>
     </Router>
+    </ThemeProvider>
   );
 }
 

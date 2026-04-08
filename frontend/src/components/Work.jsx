@@ -40,15 +40,15 @@ const Work = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-16">
-      <h1 className="text-3xl font-bold text-center text-customBlue mb-8">
+    <div className="min-h-screen bg-white dark:bg-gray-950 py-16 px-16 transition-colors duration-500">
+      <h1 className="text-3xl font-black text-center text-customBlue dark:text-blue-400 mb-12 tracking-tighter">
         What We Do - The Latent
       </h1>
       <div className="space-y-6">
         {services.map((service, index) => (
           <div
             key={index}
-            className="flex flex-col md:flex-row items-center border border-blue-400 rounded-lg p-4 bg-white shadow-md hover:shadow-xl transition-shadow"
+            className="flex flex-col md:flex-row items-center border border-blue-100 dark:border-gray-800 rounded-3xl p-6 bg-white dark:bg-gray-900 shadow-sm hover:shadow-xl transition-all duration-300"
           >
             {/* Left - Image */}
             <div className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center">
@@ -60,10 +60,10 @@ const Work = () => {
 </div>
             {/* Right - Content */}
             <div className="mt-4 md:mt-0 md:ml-6 flex-1">
-              <h2 className="text-2xl font-semibold text-customBlue mb-2">
+              <h2 className="text-2xl font-black text-customBlue dark:text-blue-400 mb-2 transition-colors">
                 {service.title}
               </h2>
-              <p className="text-gray-600 text-xl">{service.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">{service.description}</p>
             </div>
           </div>
         ))}

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS, API_BASE_URL } from "../config/api";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 const FormComponent = () => {
   const navigate = useNavigate();
@@ -346,15 +348,17 @@ const FormComponent = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        encType="multipart/form-data"
-        onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-xl px-8 pt-6 pb-8 w-full max-w-2xl my-10 space-y-6"
-      >
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
-          Submit your video in Battle
-        </h2>
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500">
+      <Navbar />
+      <div className="flex-grow pt-[120px] pb-20 flex justify-center items-center px-4">
+        <form
+          encType="multipart/form-data"
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-gray-900 shadow-2xl rounded-[3rem] p-10 w-full max-w-2xl border border-gray-100 dark:border-gray-800 transition-all duration-300 space-y-8"
+        >
+          <h2 className="text-4xl font-black text-center text-blue-600 dark:text-blue-400 mb-8 tracking-tighter uppercase italic">
+            Submit your Talent
+          </h2>
 
         {/* Input Fields */}
         <div className="grid grid-cols-1 gap-6">
@@ -382,7 +386,7 @@ const FormComponent = () => {
             },
           ].map((input, idx) => (
             <div key={idx}>
-              <label className="block text-gray-700 font-bold mb-2">
+              <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
                 {input.label}
               </label>
               <input
@@ -394,7 +398,7 @@ const FormComponent = () => {
                 max={input.max}
                 onChange={handleChange}
                 required
-                className={`shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none 
+                className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white
                   ${
                     errors[input.name]
                       ? "border-red-500 focus:ring-red-500"
@@ -410,7 +414,7 @@ const FormComponent = () => {
           ))}
 
           <div>
-            <label className="block text-gray-700 font-bold mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
               Address
             </label>
             <textarea
@@ -418,7 +422,7 @@ const FormComponent = () => {
               value={formData.address}
               onChange={handleChange}
               required
-              className={`shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none 
+              className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium dark:text-white
                 ${
                   errors.address
                     ? "border-red-500 focus:ring-red-500"
@@ -435,7 +439,7 @@ const FormComponent = () => {
 
         {/* About Yourself */}
         <div>
-          <label className="block text-gray-700 font-bold mb-2">
+          <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
             About Yourself
           </label>
           <ul className="list-disc list-inside space-y-1">
@@ -500,26 +504,34 @@ const FormComponent = () => {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-center gap-5">
-          <div
-            onClick={handlePayment}
-            className="px-6 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Pay Now
-          </div>
+        <div className="flex flex-col sm:flex-row justify-center gap-5 pt-6">
           <button
-            type="submit"
-            disabled={!isPaymentSuccessful} // Disable if payment is not successful
-            className={`px-6 py-2 rounded-lg ${
+            type="button"
+            onClick={handlePayment}
+            disabled={isPaymentSuccessful}
+            className={`flex-1 px-10 py-5 font-black rounded-[1.5rem] transition-all uppercase tracking-widest text-xs shadow-xl ${
               isPaymentSuccessful
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-400 text-gray-700 cursor-not-allowed"
+                ? "bg-emerald-500 text-white cursor-default shadow-emerald-500/20"
+                : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-500/20 active:scale-95 border-b-4 border-blue-800"
             }`}
           >
-            Submit
+            {isPaymentSuccessful ? "✓ Payment Verified" : "Pay & Verify"}
+          </button>
+          <button
+            type="submit"
+            disabled={!isPaymentSuccessful}
+            className={`flex-1 px-10 py-5 font-black rounded-[1.5rem] transition-all uppercase tracking-widest text-xs shadow-xl ${
+              isPaymentSuccessful
+                ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-95 border-b-4 border-gray-700"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-b-4 border-gray-200 dark:border-gray-900"
+            }`}
+          >
+            Submit Application
           </button>
         </div>
       </form>
+      </div>
+      <Footer />
     </div>
   );
 };

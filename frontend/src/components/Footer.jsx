@@ -3,7 +3,6 @@ import {
   Mail, 
   Phone, 
   MapPin, 
-  Facebook, 
   Twitter, 
   Instagram, 
   Linkedin 
@@ -11,7 +10,7 @@ import {
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-12">
+    <footer className="bg-gray-900 dark:bg-black text-white py-12 transition-colors duration-500">
       <div className="container mx-auto px-4">
         {/* Contact Section */}
         <div id="contact" className="grid md:grid-cols-3 gap-8">
@@ -38,17 +37,16 @@ const Footer = () => {
           <div>
             <h3 className="text-2xl font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="/" className="hover:text-purple-500">About Us</a></li>
-              <li><a href="/" className="hover:text-purple-500">How It Works</a></li>
-              <li><a href="/" className="hover:text-purple-500">FAQ</a></li>
-              <li><a href="/" className="hover:text-purple-500">Terms of Service</a></li>
+              <li><a href="/about" className="hover:text-purple-500">About Us</a></li>
+              <li><a href="/how-it-works" className="hover:text-purple-500">How It Works</a></li>
+              <li><a href="/faq" className="hover:text-purple-500">FAQ</a></li>
+              <li><a href="/terms" className="hover:text-purple-500">Terms of Service</a></li>
             </ul>
           </div>
 
           {/* Social Media */}
           <div>
             <h3 className="text-2xl font-bold mb-4">Connect With Us</h3>
-            {/* Social Media Icons */}
             <div className="flex space-x-4 mt-4">
               <a href="https://twitter.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
                 <Twitter size={24} />

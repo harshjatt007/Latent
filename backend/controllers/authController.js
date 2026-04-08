@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 // Signup function
 exports.signup = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
 
   try {
     // Check if user already exists
@@ -25,13 +25,33 @@ exports.signup = async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
-      avatar: `https://avatar.iran.liara.run/public/${randomNumber}`
+      avatar: "", // No default avatar, we'll use initials in frontend
+      role: role || 'user'
     });
 
     // Save to database
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Generate token immediately so user is logged in after signup
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        avatar: newUser.avatar,
+        bio: newUser.bio,
+        role: newUser.role,
+      }
+    });
   } catch (error) {
     console.error('Error during signup:', error);
     res.status(500).json({ message: 'Server error' });
@@ -61,15 +81,18 @@ exports.signin = async (req, res) => {
       { expiresIn: '1h' } // Token expiration time
     );
 
-    // Send response
+    // Send response with avatar included
     res.status(200).json({
       message: 'Login successful',
-      token, // Include token
+      token,
       user: {
         id: existingUser._id,
         firstName: existingUser.firstName,
         lastName: existingUser.lastName,
         email: existingUser.email,
+        avatar: existingUser.avatar,
+        bio: existingUser.bio,
+        role: existingUser.role,
       },
     });
   } catch (error) {
