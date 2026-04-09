@@ -8,11 +8,11 @@ import Navbar from "../components/Navbar";
 import UserAvatar from "../components/UserAvatar";
 import toast from "react-hot-toast";
 
-// Import images with webpack/vite optimization
-const importAll = (r) => r.keys().map(r);
-const backgroundImages = importAll(
-  require.context("../assets", false, /\.(png|jpe?g|svg)$/)
-);
+import battleChampionImg from '../assets/battle_champion.png';
+import battleLiveImg from '../assets/battle_live.png';
+import battleUpcomingImg from '../assets/battle_upcoming.png';
+
+
 
 const Battle = () => {
   const navigate = useNavigate();
@@ -116,7 +116,7 @@ const Battle = () => {
         : "The results for the previous cycle are being calculated...",
       buttonText: "Show Results",
       winners: battleData.winners || [],
-      image: backgroundImages[2],
+      image: battleChampionImg,
     },
     {
       title: "Ongoing Battles",
@@ -124,13 +124,13 @@ const Battle = () => {
         ? `Today's talent showdown - ${battleData.ongoing.length} active entries!`
         : "Today's contest has just begun - be the first to enter!",
       buttonText: hasParticipated ? "Participated" : "Participate",
-      image: backgroundImages[0],
+      image: battleLiveImg,
     },
     {
       title: "Upcoming Battles",
       description: "New talent and challenges arrive every 24 hours",
       buttonText: "Learn More",
-      image: backgroundImages[1],
+      image: battleUpcomingImg,
       details: {
         message: "In the next 24 hours, you will see the new contest and battles!",
       },
@@ -199,7 +199,7 @@ const Battle = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row hover:shadow-blue-600/10 transition-all duration-500 w-full group"
+              className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row hover:shadow-blue-600/10 transition-all duration-500 w-full group md:min-h-[500px]"
             >
               {/* Image Section */}
               <div className="w-full md:w-5/12 bg-gray-200 dark:bg-gray-800 relative overflow-hidden h-80 md:h-auto">
