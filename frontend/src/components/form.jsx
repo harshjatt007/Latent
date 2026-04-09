@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS, API_BASE_URL } from "../config/api";
+import useRazorpay from "react-razorpay";
+import axios from "axios";
+import formSideBg from '../assets/battle_live.png';
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import toast from "react-hot-toast";
@@ -455,14 +458,30 @@ const FormComponent = () => {
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500">
       <Navbar />
       <div className="flex-grow pt-[120px] pb-20 flex justify-center items-center px-4">
-        <form
-          encType="multipart/form-data"
-          onSubmit={handleSubmit}
-          className="bg-white dark:bg-gray-900 shadow-2xl rounded-[3rem] p-10 w-full max-w-2xl border border-gray-100 dark:border-gray-800 transition-all duration-300 space-y-8"
-        >
-          <h2 className="text-4xl font-black text-center text-blue-600 dark:text-blue-400 mb-8 tracking-tighter uppercase italic">
-            Submit your Talent
-          </h2>
+        
+        {/* NEW Split Layout Container */}
+        <div className="bg-white dark:bg-gray-900 shadow-2xl rounded-[3rem] w-full max-w-6xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col md:flex-row transition-all duration-300">
+          
+          {/* Image Section */}
+          <div className="hidden md:block md:w-5/12 bg-gray-200 dark:bg-gray-800 relative">
+             <img src={formSideBg} alt="Stage" className="absolute w-full h-full object-cover" />
+             <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-gray-900/90 to-transparent"></div>
+             <div className="absolute inset-0 p-12 flex flex-col justify-end">
+                <h3 className="text-3xl font-black text-white italic uppercase drop-shadow-lg mb-2">Claim Your Spotlight</h3>
+                <p className="text-gray-200 font-medium">Upload your best talent directly to the global arena.</p>
+             </div>
+          </div>
+
+          {/* Form Section */}
+          <div className="w-full md:w-7/12 p-8 sm:p-12">
+            <form
+              encType="multipart/form-data"
+              onSubmit={handleSubmit}
+              className="space-y-8"
+            >
+              <h2 className="text-4xl font-black text-center md:text-left text-blue-600 dark:text-blue-400 mb-8 tracking-tighter uppercase italic">
+                Submit your Talent
+              </h2>
 
         {/* Input Fields */}
         <div className="grid grid-cols-1 gap-6">
@@ -633,7 +652,10 @@ const FormComponent = () => {
             {isSubmitting ? "Uploading..." : "Submit Application"}
           </button>
         </div>
+        </div>
       </form>
+      </div>
+      </div>
       </div>
       <Footer />
     </div>

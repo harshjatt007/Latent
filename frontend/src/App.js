@@ -47,6 +47,17 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user?.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
+
 const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
 
@@ -111,9 +122,9 @@ function App() {
         <Route
           path="/admin-dash"
           element={
-            <ProtectedRoute>
+            <AdminRoute>
               <UserDashboard />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
 

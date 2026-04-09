@@ -197,10 +197,12 @@ const Dashboard = () => {
         setVideos(battleData.ongoing || []);
       }
 
-      const totalParticipants = allVideosData.length;
+      const visibleVideos = currentRole === 'admin' ? allVideosData : (battleData.ongoing || []);
+      
+      const totalParticipants = visibleVideos.length;
       let topRated = 0;
       if (totalParticipants > 0) {
-        topRated = Math.max(...allVideosData.map(v =>
+        topRated = Math.max(...visibleVideos.map(v =>
           v.ratings?.length ? v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length : 0
         ));
       }
@@ -247,7 +249,7 @@ const Dashboard = () => {
   const currentRole = user?.role || 'user';
 
   const statCards = [
-    { label: 'Global Talents', value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
+    { label: currentRole === 'admin' ? 'Global Talents' : "Live Talents", value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
     { label: 'Highest Peak', value: `${competitionStats.topRatedValue}/5`, icon: <Star size={24} />, color: 'emerald' },
     { label: currentRole === 'contestant' ? 'My Standing' : 'Active Battles', value: currentRole === 'contestant' ? `#${competitionStats.myCurrentRanking}` : competitionStats.activeBattlesCount, icon: <Trophy size={24} />, color: 'purple' }
   ];

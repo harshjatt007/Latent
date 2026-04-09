@@ -8,11 +8,9 @@ import Navbar from "../components/Navbar";
 import UserAvatar from "../components/UserAvatar";
 import toast from "react-hot-toast";
 
-import battleChampionImg from '../assets/battle_champion.png';
-import battleLiveImg from '../assets/battle_live.png';
-import battleUpcomingImg from '../assets/battle_upcoming.png';
-
-
+import imgChampion from "../assets/battle_champion.png";
+import imgLive from "../assets/battle_live.png";
+import imgUpcoming from "../assets/1 (2).jpg";
 
 const Battle = () => {
   const navigate = useNavigate();
@@ -116,7 +114,7 @@ const Battle = () => {
         : "The results for the previous cycle are being calculated...",
       buttonText: "Show Results",
       winners: battleData.winners || [],
-      image: battleChampionImg,
+      image: imgChampion,
     },
     {
       title: "Ongoing Battles",
@@ -124,13 +122,13 @@ const Battle = () => {
         ? `Today's talent showdown - ${battleData.ongoing.length} active entries!`
         : "Today's contest has just begun - be the first to enter!",
       buttonText: hasParticipated ? "Participated" : "Participate",
-      image: battleLiveImg,
+      image: imgLive,
     },
     {
       title: "Upcoming Battles",
       description: "New talent and challenges arrive every 24 hours",
       buttonText: "Learn More",
-      image: battleUpcomingImg,
+      image: imgUpcoming,
       details: {
         message: "In the next 24 hours, you will see the new contest and battles!",
       },
