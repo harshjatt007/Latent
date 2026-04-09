@@ -1,380 +1,293 @@
-// import React, { useState, useEffect } from 'react';
-// import { Upload, VideoIcon, Star, Award } from 'lucide-react';
-// import { motion } from 'framer-motion';
-
-// const UserDashboard = () => {
-//   const [userVideo, setUserVideo] = useState(null);
-//   const [uploadProgress, setUploadProgress] = useState(0);
-//   const [competitionStats, setCompetitionStats] = useState({
-//     totalParticipants: 25,
-//     topRatedVideo: 4.7,
-//     myCurrentRanking: 8
-//   });
-
-//   const handleVideoUpload = (event) => {
-//     const file = event.target.files[0];
-//     if (file) {
-//       // Simulate upload progress
-//       const simulateUpload = () => {
-//         let progress = 0;
-//         const interval = setInterval(() => {
-//           progress += 20;
-//           setUploadProgress(progress);
-
-//           if (progress >= 100) {
-//             clearInterval(interval);
-//             setUserVideo({
-//               title: file.name,
-//               type: file.type,
-//               size: `${(file.size / 1024 / 1024).toFixed(2)} MB`
-//             });
-//           }
-//         }, 500);
-//       };
-
-//       simulateUpload();
-//     }
-//   };
-
-//   return (
-//     <div className="dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6 bg-[#3D3BF3] min-h-screen">
-//       {/* Header */}
-//       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-//         <motion.div
-//           initial={{ opacity: 0, y: -20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           transition={{ duration: 0.5 }}
-//         >
-//           <h1 className="text-2xl font-bold text-white">My Talent Showcase</h1>
-//         </motion.div>
-//       </header>
-
-//       {/* Competition Overview */}
-//       <motion.section
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.5 }}
-//         className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
-//       >
-//         <div className="flex justify-between items-center mb-4">
-//           <h2 className="text-lg font-bold text-gray-800">Competition Overview</h2>
-//           <Award className="text-yellow-500" size={32} />
-//         </div>
-//         <div className="grid grid-cols-3 gap-4">
-//           <div className="text-center">
-//             <p className="text-gray-600">Total Participants</p>
-//             <p className="text-2xl font-bold text-blue-600">
-//               {competitionStats.totalParticipants}
-//             </p>
-//           </div>
-//           <div className="text-center">
-//             <p className="text-gray-600">Top Rated</p>
-//             <p className="text-2xl font-bold text-green-600">
-//               {competitionStats.topRatedVideo}/5
-//             </p>
-//           </div>
-//           <div className="text-center">
-//             <p className="text-gray-600">My Ranking</p>
-//             <p className="text-2xl font-bold text-purple-600">
-//               #{competitionStats.myCurrentRanking}
-//             </p>
-//           </div>
-//         </div>
-//       </motion.section>
-
-//       {/* Video Upload Section */}
-//       <motion.section
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.6 }}
-//         className="bg-[#EBEAFF] shadow-md rounded-lg p-6 mb-6"
-//       >
-//         <h3 className="text-lg font-bold text-gray-800 mb-4">Upload Your Performance</h3>
-
-//         <div className="border-2 border-dashed border-gray-300 p-6 text-center">
-//           <input
-//             type="file"
-//             accept="video/*"
-//             onChange={handleVideoUpload}
-//             className="hidden"
-//             id="videoUpload"
-//           />
-//           <label
-//             htmlFor="videoUpload"
-//             className="cursor-pointer flex flex-col items-center"
-//           >
-//             <Upload className="w-12 h-12 text-blue-500 mb-4" />
-//             <p className="text-gray-600 mb-2">
-//               {userVideo
-//                 ? 'Video Uploaded Successfully'
-//                 : 'Drag & Drop or Click to Upload'}
-//             </p>
-//             <p className="text-sm text-gray-500">
-//               MP4, AVI, MOV (Max 500MB)
-//             </p>
-//           </label>
-//         </div>
-
-//         {uploadProgress > 0 && (
-//           <div className="mt-4">
-//             <div className="w-full bg-gray-200 rounded-full h-2.5">
-//               <div
-//                 className="bg-blue-600 h-2.5 rounded-full"
-//                 style={{ width: `${uploadProgress}%` }}
-//               ></div>
-//             </div>
-//             <p className="text-sm text-gray-600 mt-2">
-//               Uploading: {uploadProgress}%
-//             </p>
-//           </div>
-//         )}
-
-//         {userVideo && (
-//           <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-//             <div className="flex items-center justify-between">
-//               <div className="flex items-center space-x-4">
-//                 <VideoIcon className="text-blue-500" />
-//                 <div>
-//                   <p className="font-medium">{userVideo.title}</p>
-//                   <p className="text-sm text-gray-600">
-//                     {userVideo.type} | {userVideo.size}
-//                   </p>
-//                 </div>
-//               </div>
-//               <button className="text-red-500 hover:text-red-700">
-//                 Remove
-//               </button>
-//             </div>
-//           </div>
-//         )}
-//       </motion.section>
-
-//       {/* Performance Ratings */}
-//       <motion.section
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.7 }}
-//         className="bg-[#EBEAFF] shadow-md rounded-lg p-6"
-//       >
-//         <h3 className="text-lg font-bold text-gray-800 mb-4">My Performance Ratings</h3>
-//         <div className="grid grid-cols-2 gap-4">
-//           <div className="bg-white p-4 rounded-lg shadow-sm">
-//             <div className="flex justify-between items-center mb-2">
-//               <span className="text-gray-600">Self Rating</span>
-//               <Star className="text-yellow-400" size={20} />
-//             </div>
-//             <p className="text-2xl font-bold text-blue-600">4.2/5</p>
-//           </div>
-//           <div className="bg-white p-4 rounded-lg shadow-sm">
-//             <div className="flex justify-between items-center mb-2">
-//               <span className="text-gray-600">Viewer Rating</span>
-//               <Star className="text-yellow-400" size={20} />
-//             </div>
-//             <p className="text-2xl font-bold text-green-600">4.0/5</p>
-//           </div>
-//         </div>
-//       </motion.section>
-//     </div>
-//   );
-// };
-
-// export default UserDashboard;
-
-import React, { useState, useEffect } from "react";
-import { Trophy, VideoIcon, Star } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Trophy, VideoIcon, Star, Trash2, RefreshCw, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
 import UserAvatar from "./components/UserAvatar";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { API_BASE_URL, API_ENDPOINTS } from "./config/api";
 
-const Dashboard = () => {
+const AdminDash = () => {
   const [videos, setVideos] = useState([]);
-  const [topPerformer, setTopPerformer] = useState(null);
+  const [currentLeaders, setCurrentLeaders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  // Mock data structure - replace with your actual data fetching logic
-  const mockVideos = [
-    {
-      id: "1",
-      participantName: "Abhishek Chaudhary",
-      videoTitle: "Contemporary Dance",
-      selfRating: 4.5,
-      averageViewerRating: 4.7,
-      filename: "Contemporary-Dance.mp4",
-      votesReceived: 95,
-    },
-    {
-      id: "2",
-      participantName: "Pulkit Garg",
-      videoTitle: "Acoustic Guitar Performance",
-      selfRating: 4.2,
-      averageViewerRating: 4.3,
-      filename: "Acoustic-Guitar-Performance.mp4",
-      votesReceived: 88,
-    },
-    {
-      id: "3",
-      participantName: "Ayush Kumar",
-      videoTitle: "Original Spoken Word",
-      selfRating: 4.0,
-      averageViewerRating: 4.1,
-      filename: "Original-Spoken-Word.mp4",
-      votesReceived: 76,
-    },
-    {
-      id: "4",
-      participantName: "Priya Singh",
-      videoTitle: "Classical Dance Performance",
-      selfRating: 4.3,
-      averageViewerRating: 4.5,
-      filename: "Classical-Dance-Performance.mp4",
-      votesReceived: 82,
-    },
-    {
-      id: "5",
-      participantName: "Rahul Verma",
-      videoTitle: "Stand-up Comedy Act",
-      selfRating: 4.1,
-      averageViewerRating: 4.4,
-      filename: "Standup-Comedy-Act.mp4",
-      votesReceived: 80,
-    },
-  ];
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Fetch live winner preview using today's videos
+      const [allVideosRes, leaderRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/battles/summary`),
+        axios.get(`${API_BASE_URL}/api/battles/test-winner`)
+      ]);
 
-  useEffect(() => {
-    // In a real app, fetch videos from your backend
-    setVideos(mockVideos);
+      // Ongoing videos = today's submissions
+      const todayVids = allVideosRes.data.ongoing || [];
+      // Enrich with avgRating
+      const enriched = todayVids.map(v => ({
+        ...v,
+        avgRating: v.ratings?.length
+          ? (v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length)
+          : 0,
+        votes: v.ratings?.length || 0
+      })).sort((a, b) => b.avgRating - a.avgRating);
 
-    // Find top performer based on highest votes
-    const findTopPerformer = () => {
-      return mockVideos.reduce((top, current) =>
-        current.votesReceived > top.votesReceived ? current : top
-      );
-    };
-
-    setTopPerformer(findTopPerformer());
+      setVideos(enriched);
+      setCurrentLeaders(leaderRes.data.winners || []);
+      setLastRefresh(new Date());
+    } catch (err) {
+      console.error("Admin dash fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500 font-sans">
-      <Navbar />
-      <div className="flex-grow pt-[120px] pb-20 p-8">
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+  useEffect(() => {
+    fetchData();
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const handleDelete = async (videoId) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <span className="font-bold text-sm">Delete this video submission?</span>
+        <div className="flex justify-end gap-2 mt-2">
+          <button 
+            className="px-3 py-1 bg-red-600 text-white rounded text-xs"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await axios.delete(`${API_BASE_URL}/api/videos/${videoId}`);
+                setVideos((prev) => prev.filter((v) => v._id !== videoId));
+                setCurrentLeaders((prev) => prev.filter((v) => v._id !== videoId));
+                toast.success("Video deleted");
+              } catch (err) {
+                toast.error("Failed to delete video.");
+              }
+            }}
           >
-            <h1 className="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tighter uppercase italic">
-              Admin Showcase Control
+            Yes, delete
+          </button>
+          <button 
+            className="px-3 py-1 bg-gray-200 text-gray-800 rounded text-xs"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors duration-500 font-sans">
+      <Navbar />
+      <div className="flex-grow pt-[120px] pb-20 px-4 md:px-8 max-w-7xl mx-auto w-full">
+
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+          <div>
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
+              Admin Control
             </h1>
-          </motion.div>
+            <p className="text-gray-400 text-sm font-medium mt-1 uppercase tracking-widest">
+              Live contest overview · Auto-refreshes every 30s
+            </p>
+          </div>
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
         </header>
 
-      {/* Winner Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white dark:bg-gray-900 shadow-2xl rounded-[2.5rem] p-10 mb-8 border border-gray-100 dark:border-gray-800"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-800">
-            Current Top Performer
-          </h2>
-          <Trophy className="text-yellow-500" size={32} />
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: "Today's Entries", value: videos.length, color: "text-blue-600" },
+            { label: "Total Votes Cast", value: videos.reduce((a, v) => a + v.votes, 0), color: "text-purple-600" },
+            { label: "Current Leaders", value: currentLeaders.length, color: "text-emerald-600" },
+            { label: "Avg Audience Rating", value: videos.length ? (videos.reduce((a, v) => a + v.avgRating, 0) / videos.length).toFixed(2) : "—", color: "text-amber-600" },
+          ].map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.07 }}
+              className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm"
+            >
+              <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{s.label}</p>
+              <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
+            </motion.div>
+          ))}
         </div>
-        {topPerformer ? (
-          <div className="flex items-center space-x-6">
-            <UserAvatar name={topPerformer.participantName} size="w-16 h-16" textClass="text-xl" />
-            <div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
-                {topPerformer.participantName}
-              </h3>
-              <p className="text-gray-600">{topPerformer.videoTitle}</p>
-              <div className="flex items-center space-x-2 mt-2">
-                <Star className="text-yellow-400" />
-                <span className="text-gray-700">
-                  Votes: {topPerformer.votesReceived} | Rating:{" "}
-                  {topPerformer.averageViewerRating}/5
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-gray-500">No participants found</p>
-        )}
-      </motion.section>
 
-      {/* Video Submissions */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white dark:bg-gray-900 shadow-2xl rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800"
-      >
-        <h3 className="text-lg font-bold text-gray-800 mb-4">
-          Video Submissions
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Participant</th>
-                <th className="py-3 px-6 text-left">Video Title</th>
-                <th className="py-3 px-6 text-center">Self Rating</th>
-                <th className="py-3 px-6 text-center">Viewer Rating</th>
-                <th className="py-3 px-6 text-center">Votes</th>
-                <th className="py-3 px-6 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600 text-sm font-light">
-              {videos.map((video) => (
-                <tr
-                  key={video.id}
-                  className="border-b border-gray-200 hover:bg-gray-100"
-                >
-                  <td className="py-4 px-6 text-left whitespace-nowrap">
-                    <div className="flex items-center gap-4">
-                      <UserAvatar name={video.participantName} size="w-10 h-10" textClass="text-xs" />
-                      <span className="font-bold text-gray-900 dark:text-white">{video.participantName}</span>
+        {/* Current Leader(s) */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-900 shadow-xl rounded-[2.5rem] p-8 mb-8 border border-gray-100 dark:border-gray-800"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                <Crown size={20} className="text-amber-500" />
+                Current Leader{currentLeaders.length > 1 ? "s" : ""}
+              </h2>
+              <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-widest">
+                Based on today's votes so far · updates every 30s
+              </p>
+            </div>
+            {currentLeaders.length > 1 && (
+              <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl">
+                <p className="text-amber-600 dark:text-amber-400 text-xs font-black uppercase tracking-widest">
+                  🏆 {currentLeaders.length} Co-Leaders · Prize Splits Equally
+                </p>
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="text-gray-400 text-sm font-bold uppercase tracking-widest animate-pulse">Loading live data...</div>
+          ) : currentLeaders.length === 0 ? (
+            <div className="text-gray-400 text-sm font-bold uppercase tracking-widest py-4 text-center">
+              No entries yet for today's contest
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {currentLeaders.map((leader, i) => {
+                const match = Math.abs((leader.avgRating || 0) - leader.rating) <= 0.5;
+                return (
+                  <div key={i} className={`flex items-center gap-5 p-5 rounded-3xl border ${
+                    match
+                      ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800"
+                      : "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800"
+                  }`}>
+                    <div className="text-2xl">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</div>
+                    <UserAvatar name={leader.name} size="w-14 h-14" textClass="text-lg" />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase truncate">{leader.name}</h3>
+                      <div className="flex items-center gap-4 mt-1 flex-wrap">
+                        <span className="text-xs font-bold text-gray-500">Jury Score: <strong className="text-gray-800 dark:text-white">{leader.rating}/5</strong></span>
+                        <span className="text-xs font-bold text-gray-500">Audience Avg: <strong className="text-blue-600">{(leader.avgRating || 0).toFixed(2)}/5</strong></span>
+                        <span className="text-xs font-bold text-gray-500">Votes: <strong>{leader.votes ?? leader.ratings?.length ?? 0}</strong></span>
+                        {match && (
+                          <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-full tracking-widest">
+                            ✓ Match
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </td>
-                  <td className="py-3 px-6 text-left">
-                    <span>{video.videoTitle}</span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <span className="bg-yellow-200 text-yellow-600 py-1 px-3 rounded-full text-xs">
-                      {video.selfRating}/5
-                    </span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <span className="bg-green-200 text-green-600 py-1 px-3 rounded-full text-xs">
-                      {video.averageViewerRating}/5
-                    </span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <span>{video.votesReceived}</span>
-                  </td>
-                  <td className="py-3 px-6 text-center">
-                    <a
-                      href={`/video/${video.filename}`}
-                      className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
-                    >
-                      <VideoIcon className="mr-2" size={16} /> Watch
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </motion.section>
+                    {i === 0 && <Trophy size={28} className="text-amber-500 shrink-0" />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </motion.section>
+
+        {/* All Submissions Table */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-gray-900 shadow-xl rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800"
+        >
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-6">
+            Today's Submissions ({videos.length})
+          </h3>
+
+          {loading ? (
+            <div className="text-gray-400 text-sm font-bold uppercase tracking-widest animate-pulse text-center py-8">Loading submissions...</div>
+          ) : videos.length === 0 ? (
+            <div className="text-gray-400 text-sm font-bold uppercase tracking-widest text-center py-8">No submissions today yet</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-100 dark:border-gray-800 text-gray-400 uppercase text-[10px] tracking-widest font-black">
+                    <th className="py-3 px-4 text-left">Rank</th>
+                    <th className="py-3 px-4 text-left">Participant</th>
+                    <th className="py-3 px-4 text-center">Jury Rating</th>
+                    <th className="py-3 px-4 text-center">Audience Avg</th>
+                    <th className="py-3 px-4 text-center">Votes</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {videos.map((video, i) => {
+                    const avgStr = video.avgRating.toFixed(2);
+                    const match = Math.abs(video.avgRating - video.rating) <= 0.5;
+                    return (
+                      <tr key={video._id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="py-4 px-4 text-center font-black text-gray-500">{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}</td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <UserAvatar name={video.name} size="w-9 h-9" textClass="text-xs" />
+                            <div>
+                              <p className="font-black text-gray-900 dark:text-white text-sm">{video.name}</p>
+                              <p className="text-xs text-gray-400">{video.address}</p>
+                            </div>
+                            {match && (
+                              <span className="ml-2 px-2 py-0.5 bg-emerald-500 text-white text-[9px] font-black uppercase rounded-full tracking-widest">
+                                Match
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className="bg-amber-100 text-amber-700 py-1 px-3 rounded-full text-xs font-black">{video.rating}/5</span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className={`py-1 px-3 rounded-full text-xs font-black ${
+                            match
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-blue-100 text-blue-600"
+                          }`}>{avgStr}/5</span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className="font-black text-gray-700 dark:text-gray-300">{video.votes}</span>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-3">
+                            <a
+                              href={video.videoUrl?.startsWith("http") ? video.videoUrl : `${API_BASE_URL}/${video.videoUrl}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs font-black uppercase"
+                            >
+                              <VideoIcon size={14} /> Watch
+                            </a>
+                            <button
+                              onClick={() => handleDelete(video._id)}
+                              className="text-red-400 hover:text-red-600 transition-colors"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.section>
+
+        <p className="text-center text-gray-300 dark:text-gray-700 text-xs mt-6 font-mono">
+          Last refreshed: {lastRefresh.toLocaleTimeString()}
+        </p>
       </div>
       <Footer />
     </div>
   );
 };
 
-export default Dashboard;
+export default AdminDash;

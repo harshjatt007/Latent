@@ -21,11 +21,19 @@ const VideoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  uploadedBy: {
+    type: String,
+    required: false
+  },
   aboutPoints: {
     type: [String], // Changed from [Number] to [String] for text descriptions
   },
   ratings: {
     type: [Number], // New field for actual ratings (1-5)
+    default: []
+  },
+  votedBy: {
+    type: [String], // Array of User IDs who have voted
     default: []
   }
 }, { timestamps: true });

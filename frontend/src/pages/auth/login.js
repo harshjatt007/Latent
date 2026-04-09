@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import toast from "react-hot-toast";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
@@ -48,10 +49,10 @@ const Login = () => {
 
     try {
       await login(email, password); // Zustand login action
-      alert("Login successful!");
+      toast.success("Login successful!");
       navigate("/dashboard");
     } catch (err) {
-      alert(err.message || "Login failed!");
+      toast.error(err.message || "Login failed!");
     }
   };
 

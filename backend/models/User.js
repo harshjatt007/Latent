@@ -4,11 +4,10 @@ const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    unique: true
   },
   lastName: {
     type: String,
-    required: true,
+    required: false,
   },
   email: {
     type: String,
@@ -21,7 +20,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    required: true,
+    default: "",
   },
   bio: {
     type: String,

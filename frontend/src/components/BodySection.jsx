@@ -91,7 +91,7 @@ const BodySection = () => {
   };
 
   const handleLearnMore = () => {
-    navigate('/battle');
+    navigate('/about');
   };
 
   return (

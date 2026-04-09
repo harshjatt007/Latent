@@ -129,12 +129,22 @@ const Navbar = () => {
                     >
                       Dashboard
                     </Link>
-                    <Link
-                      to="/ratings"
-                      className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-medium"
-                    >
-                      Ratings
-                    </Link>
+                    {user?.role !== 'contestant' && (
+                      <Link
+                        to="/ratings"
+                        className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-medium"
+                      >
+                        Ratings
+                      </Link>
+                    )}
+                    {user?.role === 'admin' && (
+                      <Link
+                        to="/admin-dash"
+                        className="px-4 py-2 rounded-lg text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
                     <hr className="my-1 border-gray-200 dark:border-gray-600" />
                     <button
                       onClick={() => {
@@ -206,6 +216,9 @@ const Navbar = () => {
                   <>
                     <Link to="/profile" className="text-gray-700 dark:text-gray-300 font-medium py-2">Profile</Link>
                     <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 font-medium py-2">Dashboard</Link>
+                    {user?.role === 'admin' && (
+                      <Link to="/admin-dash" className="text-blue-600 dark:text-blue-400 font-bold py-2">Admin Dashboard</Link>
+                    )}
                     <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-red-500 font-medium py-2 text-left">Logout</button>
                   </>
                 ) : (

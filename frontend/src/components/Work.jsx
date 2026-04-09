@@ -20,9 +20,9 @@ const Work = () => {
       image: image2,
     },
     {
-      title: "Weekly Competitions",
+      title: "Daily Competitions",
       description:
-        "Compete with others in weekly challenges. The talent with the highest average likes wins!",
+        "Compete with others in daily challenges. The talent with the highest average likes wins!",
       image: image3,
     },
     {

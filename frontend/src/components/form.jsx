@@ -4,10 +4,62 @@ import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS, API_BASE_URL } from "../config/api";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import toast from "react-hot-toast";
 
 const FormComponent = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, user } = useAuthStore();
+  const { isAuthenticated, logout, user, isCheckingAuth } = useAuthStore();
+
+  React.useEffect(() => {
+    // Safety timeout to prevent infinite Loading screen
+    const timeout = setTimeout(() => {
+      if (isChecking) setIsChecking(false);
+    }, 4000);
+    return () => clearTimeout(timeout);
+  }, [isChecking]);
+
+  React.useEffect(() => {
+    if (!isCheckingAuth && !isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+  }, [isAuthenticated, isCheckingAuth, navigate]);
+
+  React.useEffect(() => {
+    if (user && user.role !== 'contestant') {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  const [hasParticipated, setHasParticipated] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  React.useEffect(() => {
+    async function checkParticipation() {
+      if (isCheckingAuth) return; // Wait for store
+      
+      if (user && user.role === 'contestant') {
+        const userId = user._id || user.id;
+        try {
+          console.log("Checking participation for:", userId);
+          const res = await fetch(`${API_BASE_URL}/api/check-participation/${userId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.participated) {
+              setHasParticipated(true);
+            }
+          }
+        } catch (e) {
+          console.error("Error checking participation:", e);
+        } finally {
+          setIsChecking(false);
+        }
+      } else if (!isCheckingAuth) {
+        setIsChecking(false);
+      }
+    }
+    checkParticipation();
+  }, [user, isCheckingAuth]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,6 +71,7 @@ const FormComponent = () => {
   });
   const [errors, setErrors] = useState({});
   const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [aboutInput, setAboutInput] = useState("");
   const [videoPreview, setVideoPreview] = useState("");
 
@@ -77,8 +130,15 @@ const FormComponent = () => {
 
   // Handle Razorpay payment
   const handlePayment = async () => {
+    if (!user) {
+      toast.error(
+        "You must be logged in to test the upload. Please log in or sign up first."
+      );
+      return;
+    }
+
     if (!validateForm()) {
-      alert(
+      toast.error(
         "Please correct the errors in the form before proceeding with payment."
       );
       return;
@@ -95,8 +155,8 @@ const FormComponent = () => {
 
       const data = await response.json();
 
-      if (data.error) {
-        alert("Error creating payment order.");
+      if (!response.ok) {
+        toast.error("Error creating payment order.");
         return;
       }
 
@@ -108,8 +168,8 @@ const FormComponent = () => {
         description: "Payment for Video Upload",
         order_id: data.id,
         handler: function (response) {
-          alert("Payment successful");
-          setIsPaymentSuccessful(true);
+          toast.success("Payment successful");
+          setFormData(prev => ({ ...prev, paymentStatus: true }));
         },
         prefill: {
           name: formData.name,
@@ -124,8 +184,8 @@ const FormComponent = () => {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error("Error during payment:", error);
-      alert("Error initiating payment");
+      console.error("Error in Payment Process:", error);
+      toast.error("Error initiating payment");
     }
   };
 
@@ -229,7 +289,7 @@ const FormComponent = () => {
   const handleAddAboutPoint = () => {
     const wordCount = aboutInput.trim().split(/\s+/).length;
     if (wordCount > 5) {
-      alert("Each point about yourself cannot exceed 5 words.");
+      toast.error("Each point about yourself cannot exceed 5 words.");
       return;
     }
   
@@ -262,9 +322,13 @@ const FormComponent = () => {
       fData.append("address", formData.address);
       fData.append("age", formData.age);
       fData.append("rating", formData.rating);
-      // Convert aboutPoints to numbers for backend compatibility
-      const aboutPointsAsNumbers = formData.aboutPoints.map((_, index) => index + 1);
-      fData.append("aboutPoints", JSON.stringify(aboutPointsAsNumbers));
+      // aboutPoints is already an array of strings as per Video schema
+      fData.append("aboutPoints", JSON.stringify(formData.aboutPoints));
+      const userIdStr = String(user?._id || user?.id || "");
+      if (userIdStr) {
+        fData.append("userId", userIdStr);
+      }
+      console.log("Submitting with userId:", userIdStr);
 
       try {
         console.log("Uploading to:", API_ENDPOINTS.fileUpload);
@@ -324,13 +388,19 @@ const FormComponent = () => {
 
     // Validate form before submission
     if (!validateForm()) {
-      alert("Please correct the errors in the form before submitting.");
+      toast.error("Please correct the errors in the form before submitting.");
+      return;
+    }
+
+    if (!formData.paymentStatus) {
+      toast.error("Please complete the payment before submitting.");
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const result = await handlesubmit2(e);
-      alert("Form submitted successfully! Your video has been uploaded.");
+      toast.success("Form submitted successfully! Your video has been uploaded.");
       // Reset form after successful submission
       setFormData({
         name: "",
@@ -339,13 +409,44 @@ const FormComponent = () => {
         address: "",
         aboutPoints: [],
         video: null,
+        paymentStatus: false,
       });
-      navigate("/Dashboard");
+      navigate("/battle");
     } catch (error) {
-      console.error("Submission Error:", error);
-      alert(`Error submitting form: ${error.message}`);
+      console.error("Submission Error Details:", error);
+      toast.error(`Error submitting form: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+  if (isChecking) {
+    return <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col justify-center items-center text-gray-500 font-bold uppercase tracking-widest text-2xl">Loading...</div>;
+  }
+
+  if (hasParticipated) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500">
+        <Navbar />
+        <div className="flex-grow pt-[120px] pb-20 flex justify-center items-center px-4">
+          <div className="bg-white dark:bg-gray-900 shadow-2xl rounded-[3rem] p-10 w-full max-w-2xl border border-gray-100 dark:border-gray-800 text-center animate-fade-in-up">
+            <h2 className="text-4xl font-black text-blue-600 dark:text-blue-400 mb-4 tracking-tighter uppercase italic">
+              LIMIT REACHED
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 font-bold text-lg">
+              You have already successfully submitted your talent for today's contest. Please wait roughly 24 hours to post again!
+            </p>
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all shadow-blue-600/20 uppercase tracking-widest text-xs"
+            >
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500">
@@ -446,7 +547,7 @@ const FormComponent = () => {
             {formData.aboutPoints.map((point, index) => (
               <li
                 key={index}
-                className="flex justify-between items-center text-gray-800"
+                className="flex justify-between items-center text-gray-800 dark:text-gray-200"
               >
                 <span>{point}</span>
                 <button
@@ -464,7 +565,7 @@ const FormComponent = () => {
               type="text"
               value={aboutInput}
               onChange={(e) => setAboutInput(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Add a point about yourself"
             />
             <button
@@ -479,7 +580,7 @@ const FormComponent = () => {
 
         {/* Video Upload */}
         <div>
-          <label className="block text-gray-700 font-bold mb-2">
+          <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
             Upload Video
           </label>
           {videoPreview && (
@@ -496,7 +597,7 @@ const FormComponent = () => {
             name="uploadfile"
             id="uploadfile"
             onChange={handleFileChange}
-            className="mt-2"
+            className="mt-2 text-gray-900 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/50 dark:file:text-blue-400"
           />
           {errors.video && (
             <p className="text-red-500 text-xs italic mt-1">{errors.video}</p>
@@ -508,25 +609,25 @@ const FormComponent = () => {
           <button
             type="button"
             onClick={handlePayment}
-            disabled={isPaymentSuccessful}
+            disabled={formData.paymentStatus}
             className={`flex-1 px-10 py-5 font-black rounded-[1.5rem] transition-all uppercase tracking-widest text-xs shadow-xl ${
-              isPaymentSuccessful
+              formData.paymentStatus
                 ? "bg-emerald-500 text-white cursor-default shadow-emerald-500/20"
                 : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-500/20 active:scale-95 border-b-4 border-blue-800"
             }`}
           >
-            {isPaymentSuccessful ? "✓ Payment Verified" : "Pay & Verify"}
+            {formData.paymentStatus ? "✓ Payment Verified" : "Pay & Verify"}
           </button>
           <button
             type="submit"
-            disabled={!isPaymentSuccessful}
+            disabled={!formData.paymentStatus || isSubmitting}
             className={`flex-1 px-10 py-5 font-black rounded-[1.5rem] transition-all uppercase tracking-widest text-xs shadow-xl ${
-              isPaymentSuccessful
+              formData.paymentStatus
                 ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-95 border-b-4 border-gray-700"
                 : "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed border-b-4 border-gray-200 dark:border-gray-900"
-            }`}
+            } ${isSubmitting ? "opacity-50 cursor-wait" : ""}`}
           >
-            Submit Application
+            {isSubmitting ? "Uploading..." : "Submit Application"}
           </button>
         </div>
       </form>

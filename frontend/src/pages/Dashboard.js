@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoIcon, Star, Award, Users, Trophy, Play, Info, Search, TrendingUp, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserAvatar from '../components/UserAvatar';
@@ -23,19 +24,20 @@ const StatSkeleton = () => (
 );
 
 const VideoSkeleton = () => (
-  <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[2rem] overflow-hidden">
-    <div className="w-full h-52 bg-gray-100 dark:bg-gray-800 animate-pulse" />
-    <div className="p-6 space-y-4">
-      <div className="w-3/4 h-6 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
-      <div className="w-1/2 h-4 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
-      <div className="w-full h-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl animate-pulse" />
-    </div>
-  </div>
+  <div className="w-full h-80 bg-gray-100 dark:bg-gray-800 rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-gray-800" />
 );
 
-const VideoCard = ({ vid, index, isMatch, isAdmin, onDelete }) => {
+const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete, onPlay }) => {
   const avgR = vid.ratings?.length ? (vid.ratings.reduce((a, b) => a + b, 0) / vid.ratings.length).toFixed(1) : '0.0';
   const { isDark } = useTheme();
+  const videoRef = useRef(null);
+
+  // Expose video element back to parent
+  useEffect(() => {
+    if (onPlay && videoRef.current) {
+      onPlay(videoRef.current);
+    }
+  }, []);
 
   return (
     <motion.div
@@ -47,24 +49,20 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, onDelete }) => {
     >
       <div className="relative h-60 overflow-hidden bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <video
+          ref={videoRef}
+          controls
           src={vid.videoUrl ? (vid.videoUrl.startsWith('http') ? vid.videoUrl : `${API_BASE_URL}/${vid.videoUrl}`) : ""}
-          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-          muted
-          loop
+          className="w-full h-full object-cover"
           playsInline
           preload="metadata"
           onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
-          onMouseEnter={e => {
-            const playPromise = e.target.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(() => {
-                // Ignore interruption errors
-              });
-            }
-          }}
-          onMouseLeave={e => {
-            e.target.pause();
-            e.target.currentTime = 0.1;
+          onPlay={(e) => {
+            // Pause all other registered videos
+            document.querySelectorAll('video').forEach(v => {
+              if (v !== e.target && !v.paused) {
+                v.pause();
+              }
+            });
           }}
           onError={(e) => {
             e.target.style.display = 'none';
@@ -72,15 +70,8 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, onDelete }) => {
             e.target.parentElement.innerHTML = '<div class="text-gray-600 dark:text-gray-500 font-black text-xs uppercase tracking-widest text-center">Preview Unavailable</div>';
           }}
         />
-        <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center justify-between">
-            <div className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest">{vid.age} Yrs · {vid.address?.split(',')[0]}</div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md text-white border border-white/20 transition-transform group-hover:rotate-12`}>
-              <Play size={14} fill="white" />
-            </div>
-          </div>
-        </div>
-        {isMatch && (
+        <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest">{vid.age} Yrs · {vid.address?.split(',')[0]}</div>
+        {isAdmin && isMatch && (
           <div className="absolute top-4 left-4 px-4 py-2 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-lg shadow-emerald-500/20 animate-pulse">POTENTIAL WINNER</div>
         )}
       </div>
@@ -95,9 +86,13 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, onDelete }) => {
              </div>
           </div>
           <div className="flex flex-col items-end">
-            <div className="flex items-center gap-1 text-emerald-500 font-black text-xl">
-              <Star size={18} fill="currentColor" /> {avgR}
-            </div>
+            {!isAdmin ? (
+              <div className="text-gray-400 font-black text-xs uppercase tracking-widest mt-1">Pending</div>
+            ) : (
+               <div className="flex items-center gap-1 text-emerald-500 font-black text-xl">
+                 <Star size={18} fill="currentColor" /> {avgR}
+               </div>
+            )}
             <p className="text-[10px] font-bold text-gray-400">{vid.ratings?.length || 0} Votes</p>
           </div>
         </div>
@@ -110,8 +105,12 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, onDelete }) => {
             </div>
             <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
             <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Jury Avg</p>
-              <p className={`text-2xl font-black text-center ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}</p>
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Audience Score</p>
+              {!isAdmin ? (
+                <p className="text-[12px] font-black tracking-widest text-gray-400 text-center pt-2">HIDDEN</p>
+              ) : (
+                <p className={`text-2xl font-black text-center ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}</p>
+              )}
             </div>
           </div>
         </div>
@@ -139,18 +138,44 @@ const Dashboard = () => {
   const [competitionStats, setCompetitionStats] = useState({
     totalParticipants: 0,
     topRatedValue: 0,
-    myCurrentRanking: 0
+    myCurrentRanking: 0,
+    activeBattlesCount: 0
   });
 
-  const handleDeleteVideo = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently remove this talent submission? This cannot be undone.")) return;
-    try {
-      await axios.delete(`${API_BASE_URL}/api/admin/video/${id}`);
-      setVideos(prev => prev.filter(v => v._id !== id));
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert("Failed to delete video.");
-    }
+  const handleDeleteVideo = async (videoId) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <span className="font-bold text-sm">Are you sure you want to permanently remove this talent submission?</span>
+        <div className="flex justify-end gap-2 mt-2">
+          <button 
+            className="px-3 py-1 bg-red-600 text-white rounded text-xs"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                const response = await axios.delete(`${API_ENDPOINTS.videos}/${videoId}`);
+                if (response.data.success) {
+                  setVideos((prevVideos) =>
+                    prevVideos.filter((video) => video._id !== videoId)
+                  );
+                  toast.success("Submission successfully removed");
+                }
+              } catch (error) {
+                console.error("Error deleting video:", error);
+                toast.error("Failed to delete video.");
+              }
+            }}
+          >
+            Yes, delete
+          </button>
+          <button 
+            className="px-3 py-1 bg-gray-200 text-gray-800 rounded text-xs"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   async function fetchData() {
@@ -191,7 +216,8 @@ const Dashboard = () => {
       setCompetitionStats({
         totalParticipants,
         topRatedValue: topRated.toFixed(1),
-        myCurrentRanking: myRank
+        myCurrentRanking: myRank,
+        activeBattlesCount: battleData.ongoing?.length || 0
       });
     } catch (e) {
       console.error("Fetch error:", e);
@@ -211,7 +237,7 @@ const Dashboard = () => {
   const roleLabels = {
     admin: { label: 'Imperial Overseer', color: 'purple' },
     contestant: { label: 'Elite Performer', color: 'emerald' },
-    user: { label: 'Scout / Jury', color: 'blue' }
+    user: { label: 'Audience', color: 'blue' }
   };
 
   const currentRole = user?.role || 'user';
@@ -219,7 +245,7 @@ const Dashboard = () => {
   const statCards = [
     { label: 'Global Talents', value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
     { label: 'Highest Peak', value: `${competitionStats.topRatedValue}/5`, icon: <Star size={24} />, color: 'emerald' },
-    { label: currentRole === 'contestant' ? 'My Standing' : 'Active Battles', value: currentRole === 'contestant' ? `#${competitionStats.myCurrentRanking}` : '14', icon: <Trophy size={24} />, color: 'purple' }
+    { label: currentRole === 'contestant' ? 'My Standing' : 'Active Battles', value: currentRole === 'contestant' ? `#${competitionStats.myCurrentRanking}` : competitionStats.activeBattlesCount, icon: <Trophy size={24} />, color: 'purple' }
   ];
 
   return (
@@ -259,16 +285,7 @@ const Dashboard = () => {
                     className="pl-12 pr-6 py-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl w-full sm:w-64 focus:ring-2 focus:ring-blue-600/20 outline-none transition-all shadow-sm font-medium dark:text-white"
                   />
                 </div>
-                {currentRole !== 'admin' && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate(currentRole === 'contestant' ? '/ratings' : '/battle')}
-                    className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl shadow-xl transition-all hover:shadow-blue-600/20 uppercase tracking-widest text-xs"
-                  >
-                    {currentRole === 'contestant' ? 'MY VIDEO' : 'BECOME CONTESTANT'}
-                  </motion.button>
-                )}
+
                 {currentRole === 'admin' && (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -330,7 +347,7 @@ const Dashboard = () => {
                             ? "You are reading live data from Cloudinary and MongoDB. Every verdict counts. Ensure integrity of ratings and video moderation."
                             : currentRole === 'contestant'
                             ? "Your ranking shifts every hour based on audience verdict. Keep your identity clean and your video reachable for maximum growth."
-                            : "As a scout, your rating carries weight. Be fair, be bold. The next champion depends on your precision."}
+                            : "As a voter, your rating carries weight. Be fair, be bold. The next champion depends on your precision."}
                         </p>
                     </div>
                     <button onClick={() => navigate('/how-it-works')} className="px-8 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-black text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors uppercase tracking-widest text-[10px]">Guidelines</button>
@@ -353,7 +370,7 @@ const Dashboard = () => {
                             {filteredVideos.map((v, i) => {
                                 const avgR = v.ratings?.length ? (v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length).toFixed(1) : '0.0';
                                 const isMatch = Math.abs(parseFloat(avgR) - v.rating) < 0.3;
-                                return <VideoCard key={v._id || i} vid={v} index={i} isMatch={isMatch} isAdmin={currentRole === 'admin'} onDelete={handleDeleteVideo} />;
+                                return <VideoCard key={v._id || i} vid={v} index={i} isMatch={isMatch} isAdmin={currentRole === 'admin'} isContestant={currentRole === 'contestant'} onDelete={handleDeleteVideo} />;
                             })}
                         </AnimatePresence>
                     )}

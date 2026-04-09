@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import toast from "react-hot-toast";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
@@ -42,7 +43,9 @@ const Signup = () => {
   const validateField = (field, value) => {
     let message = "";
     if (!value) {
-      message = `${field} is required`;
+      if (field !== "lastName") {
+        message = `${field} is required`;
+      }
     } else if (field === "email") {
       const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|yahoo\.com)$/i;
       if (!emailRegex.test(value)) {
@@ -76,7 +79,12 @@ const Signup = () => {
       "email",
       "password",
       "confirmPassword",
-    ].every((field) => validateField(field, formData[field] || password));
+    ].every((field) => {
+      let val = formData[field];
+      if (field === "password") val = password;
+      if (field === "confirmPassword") val = confirmPassword;
+      return validateField(field, val);
+    });
 
     if (!isValid) return;
 
@@ -88,10 +96,10 @@ const Signup = () => {
         formData.lastName,
         formData.role || 'user'
       );
-      alert("Signup successful! Please log in.");
+      toast.success("Signup successful! Please log in.");
       navigate("/login");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -115,7 +123,7 @@ const Signup = () => {
               {["firstName", "lastName"].map((field) => (
                 <div key={field} className="space-y-2">
                   <label htmlFor={field} className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest pl-4">
-                    {field === "firstName" ? "First Name" : "Last Name"}
+                    {field === "firstName" ? "First Name" : "Last Name (Optional)"}
                   </label>
                   <input
                     type="text"
@@ -230,7 +238,7 @@ const Signup = () => {
               className="w-full py-5 bg-blue-600 text-white font-black rounded-[1.5rem] hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-blue-600/20 uppercase tracking-widest text-sm mt-4"
               disabled={isLoading}
             >
-              {isLoading ? "Creating Account..." : "Confirm Entry"}
+              {isLoading ? "Creating Account..." : "Sign Up"}
             </button>
           </form>
 

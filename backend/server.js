@@ -92,7 +92,23 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const storage = new CloudinaryStorage({
+const fs = require('fs');
+const path = require('path');
+if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
+  fs.mkdirSync(path.join(__dirname, 'uploads'));
+}
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const isLocalAuth = !process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'your-cloudinary-cloud-name';
+const storage = isLocalAuth ? multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'uploads'))
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname)
+  }
+}) : new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'uploads',
@@ -102,7 +118,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 10000000 },
+  limits: { fileSize: 50000000 },
   fileFilter(req, file, cb) {
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
         cb(null, true);
@@ -112,8 +128,31 @@ const upload = multer({
   }
 });
 app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
-  console.log("file:", req.file.path);
+  console.log("file:", req.file ? req.file.path : 'no file found');
   console.log(req.body);
+  
+  const nowTime = new Date();
+  const currentHour = nowTime.getHours();
+  // Upload allowed 12:00 AM to 10:00 PM
+  if (currentHour >= 22) {
+     return res.status(400).json({ success: false, error: 'Uploads are closed for today. Contest window is 12:00 AM to 10:00 PM.' });
+  }
+
+  const userId = req.body.userId || req.body.id;
+  console.log("File upload attempt. UserId in body:", userId);
+  if (userId) {
+     const startOfToday = new Date(nowTime.getFullYear(), nowTime.getMonth(), nowTime.getDate());
+     const existingVideo = await Video.findOne({ 
+       uploadedBy: String(userId),
+       createdAt: { $gte: startOfToday }
+     });
+     if (existingVideo) {
+         console.log("Blocking double upload. Found video:", existingVideo._id, "for userId:", userId);
+         return res.status(400).json({ success: false, error: 'Upload Limit Reached: You can only submit one video per day.' });
+     }
+  } else {
+     console.log("No userId found in upload request body!");
+  }
   
   // Create video entry regardless of user existence
   let aboutPoints = [];
@@ -129,19 +168,19 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
   }
 
   try {
+    const videoUrlPath = isLocalAuth && req.file ? `uploads/${req.file.filename}` : (req.file ? req.file.path : '');
     const video = new Video({
       name: req.body.name,
-      videoUrl: req.file.path,
+      videoUrl: videoUrlPath,
       address: req.body.address,
       age: parseInt(req.body.age),
       rating: parseInt(req.body.rating),
       aboutPoints: aboutPoints,
+      uploadedBy: userId ? String(userId) : null,
       ratings: [] // Initialize empty ratings array
     });
     await video.save();
-    
-    // Don't require user to exist - just create the video
-    console.log("Video saved successfully:", video._id);
+    console.log("Video saved successfully with ID:", video._id, "UploadedBy:", video.uploadedBy);
     
     res.status(200).json({ 
       success: true, 
@@ -158,9 +197,34 @@ app.post('/fileupload', upload.single('uploadfile'), async (req, res) => {
   }
 });
 
+app.get('/api/check-participation/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log("Checking participation query for userId:", userId);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const videos = await Video.find({ uploadedBy: String(userId) });
+    console.log("All videos for this user:", videos.length);
+    
+    const existingVideo = await Video.findOne({ 
+       uploadedBy: String(userId),
+       createdAt: { $gte: twentyFourHoursAgo }
+    });
+    
+    console.log("Participation check match:", !!existingVideo);
+    if (existingVideo) {
+      res.status(200).json({ participated: true, videoId: existingVideo._id });
+    } else {
+      res.status(200).json({ participated: false });
+    }
+  } catch (error) {
+    console.error("Participation check error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.post('/allVideos', async (req, res) => {
   try {
-    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings');
+    const videos = await Video.find({}).select('name videoUrl aboutPoints rating age address ratings votedBy');
     res.status(200).send(videos);
   } catch (error) {
     console.error("Error fetching videos:", error);
@@ -179,37 +243,73 @@ app.get('/api/battles/summary', async (req, res) => {
     // Ongoing: Today's videos (uploaded since midnight)
     const ongoingVideos = await Video.find({
       createdAt: { $gte: startOfToday }
-    }).select('name videoUrl aboutPoints rating age address ratings createdAt');
+    }).select('name videoUrl aboutPoints rating age address ratings votedBy createdAt uploadedBy');
 
     // Previous: Yesterday's videos (uploaded between yesterday and today's midnight)
     // If today just started and no videos yet, we might want to look at "current" versus "previous" differently.
     // But as per user: "at 12 am of next day we announce the winner then next contest starts"
     const yesterdayVideos = await Video.find({
       createdAt: { $gte: startOfYesterday, $lt: startOfToday }
-    }).select('name videoUrl aboutPoints rating age address ratings createdAt');
+    }).select('name videoUrl aboutPoints rating age address ratings votedBy createdAt uploadedBy');
 
-    // Winner selection logic
-    let winner = null;
-    if (yesterdayVideos.length > 0) {
-      yesterdayVideos.sort((a, b) => {
-        const avgA = a.ratings.length > 0 ? a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length : 0;
-        const avgB = b.ratings.length > 0 ? b.ratings.reduce((s, r) => s + r, 0) / b.ratings.length : 0;
-        
-        // Priority 1: Exact matches (Jury Rating === Audience Average)
-        const matchA = Math.abs(avgA - a.rating) < 0.1 ? 1 : 0;
-        const matchB = Math.abs(avgB - b.rating) < 0.1 ? 1 : 0;
-        
-        if (matchA !== matchB) return matchB - matchA;
-        // Priority 2: Highest Average Rating
-        return avgB - avgA;
+    const MIN_VOTES = 5; // Production minimum requirement
+
+    const getWinners = (videosList) => {
+      if (videosList.length === 0) return [];
+
+      const withAvg = videosList.map(v => {
+        const obj = v.toObject ? v.toObject() : v;
+        const avg = obj.ratings && obj.ratings.length > 0 ? obj.ratings.reduce((s, r) => s + r, 0) / obj.ratings.length : 0;
+        return {
+          ...obj,
+          avgRating: avg,
+          diff: Math.abs(avg - obj.rating)
+        };
+      }).filter(v => (v.ratings ? v.ratings.length : 0) >= MIN_VOTES);
+
+      if (withAvg.length === 0) return [];
+
+      // Filter to eligible candidates (diff <= 0.5)
+      const matched = withAvg.filter(v => v.diff <= 0.5);
+      
+      // If no one is within 0.5 diff, find the best overall or return empty?
+      // "Among eligible contestants... Smallest difference wins"
+      const candidates = matched.length > 0 ? matched : withAvg;
+
+      // Sort by the new logic
+      candidates.sort((a, b) => {
+        if (a.diff !== b.diff) return a.diff - b.diff; // Smallest diff wins
+        if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating; // Higher audience rating wins
+        const aVotes = a.ratings ? a.ratings.length : 0;
+        const bVotes = b.ratings ? b.ratings.length : 0;
+        if (aVotes !== bVotes) return bVotes - aVotes; // More votes wins
+        return new Date(a.createdAt) - new Date(b.createdAt); // Earlier upload wins
       });
-      winner = yesterdayVideos[0];
-    }
+
+      // Handle co-winners securely (exact tie across top parameters)
+      const winners = [candidates[0]];
+      const top = candidates[0];
+      const topVotes = top.ratings ? top.ratings.length : 0;
+
+      for (let i = 1; i < candidates.length; i++) {
+        const c = candidates[i];
+        const cVotes = c.ratings ? c.ratings.length : 0;
+        if (c.diff === top.diff && c.avgRating === top.avgRating && cVotes === topVotes) {
+          winners.push(c);
+        } else {
+          break;
+        }
+      }
+      return winners;
+    };
+
+    let winners = getWinners(yesterdayVideos);
 
     res.status(200).json({
       success: true,
       ongoing: ongoingVideos,
-      winner: winner,
+      winners: winners,
+      winner: winners[0] || null,
       timestamp: now,
       serverTime: now.toISOString()
     });
@@ -219,18 +319,83 @@ app.get('/api/battles/summary', async (req, res) => {
   }
 });
 
+// Admin Preview API: Calculate projected winner using TODAY'S active submissions
+app.get('/api/battles/test-winner', async (req, res) => {
+  try {
+    const startOfToday = new Date();
+    startOfToday.setHours(0,0,0,0);
+
+    const ongoingVideos = await Video.find({
+      createdAt: { $gte: startOfToday }
+    });
+
+    if (ongoingVideos.length === 0) return res.json({ winners: [], message: "No submissions yet today." });
+
+    const MIN_VOTES = 5;
+    
+    const withAvg = ongoingVideos.map(v => {
+      const obj = v.toObject();
+      const avg = obj.ratings && obj.ratings.length > 0 ? obj.ratings.reduce((s, r) => s + r, 0) / obj.ratings.length : 0;
+      return { ...obj, avgRating: avg, diff: Math.abs(avg - obj.rating) };
+    }).filter(v => (v.ratings ? v.ratings.length : 0) >= MIN_VOTES);
+
+    if (withAvg.length === 0) return res.json({ winners: [], message: "No videos meet minimum vote threshold (5) yet." });
+
+    const matched = withAvg.filter(v => v.diff <= 0.5);
+    const candidates = matched.length > 0 ? matched : withAvg;
+
+    candidates.sort((a, b) => {
+      if (a.diff !== b.diff) return a.diff - b.diff;
+      if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating;
+      const aVotes = a.ratings ? a.ratings.length : 0;
+      const bVotes = b.ratings ? b.ratings.length : 0;
+      if (aVotes !== bVotes) return bVotes - aVotes;
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    });
+
+    const winners = [candidates[0]];
+    const top = candidates[0];
+    const topVotes = top.ratings ? top.ratings.length : 0;
+    for (let i = 1; i < candidates.length; i++) {
+        const c = candidates[i];
+        const cv = c.ratings ? c.ratings.length : 0;
+        if (c.diff === top.diff && c.avgRating === top.avgRating && cv === topVotes) { winners.push(c); } else { break; }
+    }
+
+    res.json({ winners, winner: winners[0] || null });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/rate', async (req, res) => {
-  const { videoid, rating } = req.body;
+  // Midnight Lock: No voting between 11:59:00 PM and 11:59:59 PM
+  const nowTime = new Date();
+  if (nowTime.getHours() === 23 && nowTime.getMinutes() === 59) {
+    return res.status(400).json({ error: 'Voting is currently locked for daily calculation.' });
+  }
+
+  const { videoid, rating, userId } = req.body;
   try {
     const video = await Video.findById(videoid);
     if (!video) {
       return res.status(404).json({ error: 'Video not found' });
     }
     
+    if (!userId) {
+      return res.status(400).json({ error: 'Must provide userId to vote' });
+    }
+    
+    if (video.votedBy && video.votedBy.includes(userId)) {
+      return res.status(400).json({ error: 'Duplicate vote: You have already rated this video.' });
+    }
+    
     // Add rating to the ratings array (not aboutPoints)
     video.ratings.push(parseInt(rating));
+    if (!video.votedBy) video.votedBy = [];
+    video.votedBy.push(userId);
     await video.save();
-    res.status(200).json({ message: 'Rating added' });
+    res.status(200).json({ message: 'Rating added', success: true });
   } catch (error) {
     console.error("Error adding rating:", error);
     res.status(500).json({ error: 'Error adding rating' });
