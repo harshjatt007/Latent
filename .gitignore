@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+.npm
+dist
+build
+.env
+
+# Local Database
+mongo-data/
+*.log
+*.lock
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Production Built files
+frontend/build/
+backend/uploads/*
+!backend/uploads/.gitkeep

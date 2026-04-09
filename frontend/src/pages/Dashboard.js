@@ -29,7 +29,6 @@ const VideoSkeleton = () => (
 
 const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete }) => {
   const avgR = vid.ratings?.length ? (vid.ratings.reduce((a, b) => a + b, 0) / vid.ratings.length).toFixed(1) : '0.0';
-  const { isDark } = useTheme();
 
   return (
     <motion.div layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }} className="group bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500">
@@ -97,7 +96,10 @@ const Dashboard = () => {
     } catch (e) { console.error(e); } finally { setIsLoading(false); }
   }
 
-  useEffect(() => { fetchData(); }, [user]);
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleDeleteVideo = async (videoId) => {
     if (window.confirm("Delete this submission?")) {
