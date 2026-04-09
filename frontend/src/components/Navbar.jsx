@@ -139,7 +139,7 @@ const Navbar = () => {
                     {user?.role === 'admin' && (
                       <Link
                         to="/admin-dash"
-                        className="px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 transition font-bold"
+                        className="px-4 py-2 rounded-lg text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
                       >
                         Admin Dashboard
                       </Link>

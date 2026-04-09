@@ -47,6 +47,7 @@ const Footer = () => {
           {/* Social Media */}
           <div>
             <h3 className="text-2xl font-bold mb-4">Connect With Us</h3>
+            {/* Social Media Icons */}
             <div className="flex space-x-4 mt-4">
               <a href="https://twitter.com/yourprofile" className="hover:text-purple-500" target="_blank" rel="noopener noreferrer">
                 <Twitter size={24} />

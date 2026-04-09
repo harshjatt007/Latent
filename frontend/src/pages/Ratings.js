@@ -6,8 +6,10 @@ import Footer from '../components/Footer';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+
 import UserAvatar from '../components/UserAvatar';
 
 function Ratings() {
@@ -19,15 +21,23 @@ function Ratings() {
     async function postRating(value, vidid) {
         if (!user) return toast.error("You must be logged in to rate.");
         try {
+            console.log("Submitting rating:", value, "for video:", vidid);
             const response = await axios.post(API_ENDPOINTS.rate, {
-                rating: value, videoid: vidid, userId: user?._id || user?.id
+                rating: value,
+                videoid: vidid,
+                userId: user?._id || user?.id
             });
-            if (response.data.success) {
-              toast.success("Vote recorded!");
-              fetchOngoingVideos();
-            }
+            console.log("Rating response:", response.data);
+            
+            // Refresh videos after rating
+            fetchOngoingVideos();
         } catch (error) {
-            toast.error(error.response?.data?.error || "Error posting rating.");
+            console.error("Error posting rating:", error);
+            if (error.response?.data?.error) {
+                toast.error(error.response.data.error);
+            } else {
+                toast.error("Error posting rating. Please try again.");
+            }
         }
     }
 
@@ -35,20 +45,29 @@ function Ratings() {
         try {
             setLoading(true);
             const response = await axios.get(API_ENDPOINTS.battleSummary);
-            if (response.data.success) setVideos(response.data.ongoing);
+            if (response.data.success) {
+                setVideos(response.data.ongoing);
+            }
         } catch (error) {
             console.error("Error fetching ongoing videos:", error);
-        } finally { setLoading(false); }
+            setVideos([]);
+        } finally {
+            setLoading(false);
+        }
     }
 
     useEffect(() => {
-        if (user && user.role === 'contestant') { navigate('/dashboard'); return; }
+        if (user && user.role === 'contestant') {
+            navigate('/dashboard');
+            return;
+        }
         fetchOngoingVideos();
     }, [user, navigate]);
 
     function calculateAvg(arr) {
         if (!arr || arr.length === 0) return 0;
-        return (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1);
+        const sum = arr.reduce((a, b) => a + b, 0);
+        return (sum / arr.length).toFixed(1);
     }
 
     return (
@@ -79,19 +98,37 @@ function Ratings() {
                                 transition={{ delay: index * 0.05 }}
                                 className='group bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300'
                             >
+                                {/* Video Section - compact */}
                                 <div className='w-full relative bg-gray-950 aspect-video'>
                                     <video 
                                         controls 
                                         src={vid.videoUrl ? (vid.videoUrl.startsWith('http') ? vid.videoUrl : `${API_BASE_URL}/${vid.videoUrl}`) : ""} 
                                         className='w-full h-full object-cover'
-                                        onPlay={(e) => { document.querySelectorAll('video').forEach(v => { if (v !== e.target && !v.paused) v.pause(); }); }}
+                                        preload="metadata"
+                                        onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
+                                        onPlay={(e) => {
+                                            document.querySelectorAll('video').forEach(v => {
+                                                if (v !== e.target && !v.paused) {
+                                                    v.pause();
+                                                }
+                                            });
+                                        }}
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.parentElement.classList.add('flex', 'items-center', 'justify-center');
+                                            e.target.parentElement.innerHTML = '<div class="text-gray-500 font-bold text-[10px] uppercase tracking-widest text-center px-4">Preview Unavailable</div>';
+                                        }}
                                     ></video>
                                     <div className="absolute top-3 left-3 z-20">
-                                        <div className="px-2.5 py-1 bg-black/50 backdrop-blur-md text-white font-bold text-[9px] rounded-md tracking-wider uppercase">#{index + 1}</div>
+                                        <div className="px-2.5 py-1 bg-black/50 backdrop-blur-md text-white font-bold text-[9px] rounded-md tracking-wider uppercase">
+                                            #{index + 1}
+                                        </div>
                                     </div>
                                 </div>
 
+                                {/* Info Section - tight */}
                                 <div className='p-4'>
+                                    {/* Name row with tiny avatar */}
                                     <div className="flex items-center gap-2.5 mb-3">
                                         <UserAvatar name={vid.name} size="w-8 h-8" textClass="text-[10px]" />
                                         <div className="min-w-0">
@@ -100,21 +137,23 @@ function Ratings() {
                                         </div>
                                     </div>
 
+                                    {/* Rating stars - increased size */}
                                     <div className='mb-4 flex justify-center'>
                                         {vid.votedBy?.includes(user?._id || user?.id) ? (
-                                            <div className="w-full text-center py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-xl">
+                                            <div className="w-full text-center py-2 bg-emerald-50 focus:outline-none dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-xl">
                                                 <p className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">✓ Vote Recorded</p>
                                             </div>
                                         ) : (
                                             <Rating 
                                                 onChange={(value) => postRating(value, vid._id)} 
-                                                className='text-3xl'
+                                                className='text-3xl' // Increased from text-lg
                                                 emptySymbol={<span className="text-gray-200 dark:text-gray-700 mx-1 cursor-pointer transition-transform hover:scale-125 block">★</span>}
                                                 fullSymbol={<span className="text-yellow-400 mx-1 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] transition-transform hover:scale-125 block">★</span>}
                                             />
                                         )}
                                     </div>
 
+                                    {/* Scores row - Hidden till vote is cast intentionally to avoid herd mentality */}
                                     <div className='flex items-center justify-around bg-gray-50 dark:bg-gray-800/60 rounded-xl px-3 py-3'>
                                         {vid.votedBy?.includes(user?._id || user?.id) ? (
                                             <>
@@ -130,7 +169,7 @@ function Ratings() {
                                             </>
                                         ) : (
                                             <div className="text-center w-full">
-                                                <p className='text-[10px] font-black text-gray-400 uppercase tracking-widest'>Score Hidden</p>
+                                                <p className='text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest'>Score Hidden</p>
                                                 <p className='text-xs font-medium text-gray-400 mt-1'>Vote to reveal current standing</p>
                                             </div>
                                         )}
