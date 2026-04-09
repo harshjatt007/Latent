@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { VideoIcon, Star, Award, Users, Trophy, Play, Info, Search, TrendingUp, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../context/ThemeContext';
+import React, { useState, useEffect } from 'react';
+import { Star, Users, Trophy, Trash2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -11,17 +10,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserAvatar from '../components/UserAvatar';
 
-const StatSkeleton = () => (
-  <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 relative overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100/10 dark:via-gray-800/20 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-    <div className="flex justify-between items-start mb-4">
-      <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl" />
-      <div className="w-16 h-2 bg-gray-100 dark:bg-gray-800 rounded-full" />
-    </div>
-    <div className="w-1/2 h-3 bg-gray-100 dark:bg-gray-800 rounded-full mb-3" />
-    <div className="w-3/4 h-8 bg-gray-100 dark:bg-gray-800 rounded-xl" />
-  </div>
-);
+// StatSkeleton removed (unused)
 
 const VideoSkeleton = () => (
   <div className="w-full h-80 bg-gray-100 dark:bg-gray-800 rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-gray-800" />

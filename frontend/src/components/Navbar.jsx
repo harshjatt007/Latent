@@ -6,7 +6,6 @@ import logo from '../assets/logo.png';
 import { useAuthStore } from '../store/authStore';
 import { Link } from 'react-router-dom';
 import { RopeLightSwitch } from '../context/ThemeContext';
-import { API_BASE_URL } from '../config/api';
 import UserAvatar from './UserAvatar';
 
 const Navbar = () => {

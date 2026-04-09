@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Trophy, VideoIcon, Star, Trash2, RefreshCw, Crown } from "lucide-react";
-import { motion } from "framer-motion";
+import { Trophy, Trash2, RefreshCw, Crown } from "lucide-react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import UserAvatar from "./components/UserAvatar";
@@ -12,7 +11,7 @@ const AdminDash = () => {
   const [videos, setVideos] = useState([]);
   const [currentLeaders, setCurrentLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [, setLastRefresh] = useState(new Date());
 
   const fetchData = useCallback(async () => {
     setLoading(true);

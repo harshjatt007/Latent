@@ -48,7 +48,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const RedirectAuthenticatedUser = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;

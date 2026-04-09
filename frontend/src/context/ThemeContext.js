@@ -28,8 +28,8 @@ export const ThemeProvider = ({ children }) => {
 
 // Hanging pull-cord light switch
 export const RopeLightSwitch = () => {
-  const { toggleTheme } = useTheme();
-  const [pulling, setPulling] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
+  const [, setPulling] = useState(false);
   const [swinging, setSwinging] = useState(false);
   const pullStartY = useRef(null);
   const ropeRef = useRef(null);

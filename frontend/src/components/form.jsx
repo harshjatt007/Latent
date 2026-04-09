@@ -39,7 +39,7 @@ const FormComponent = () => {
   const [formData, setFormData] = useState({
     name: "", address: "", age: "", rating: "", video: null, aboutPoints: [], paymentStatus: false
   });
-  const [errors, setErrors] = useState({});
+  const [, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aboutInput, setAboutInput] = useState("");
   const [videoPreview, setVideoPreview] = useState("");

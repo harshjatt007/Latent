@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { API_BASE_URL } from "../config/api";
 
 const UserAvatar = ({ user, name: propName, size = "h-10 w-10", textClass = "text-xs" }) => {
