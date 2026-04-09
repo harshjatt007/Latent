@@ -27,102 +27,42 @@ const VideoSkeleton = () => (
   <div className="w-full h-80 bg-gray-100 dark:bg-gray-800 rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-gray-800" />
 );
 
-const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete, onPlay }) => {
+const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete }) => {
   const avgR = vid.ratings?.length ? (vid.ratings.reduce((a, b) => a + b, 0) / vid.ratings.length).toFixed(1) : '0.0';
   const { isDark } = useTheme();
-  const videoRef = useRef(null);
-
-  // Expose video element back to parent
-  useEffect(() => {
-    if (onPlay && videoRef.current) {
-      onPlay(videoRef.current);
-    }
-  }, []);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
-      className="group bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500"
-    >
+    <motion.div layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.05 }} className="group bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500">
       <div className="relative h-60 overflow-hidden bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-        <video
-          ref={videoRef}
-          controls
-          src={vid.videoUrl ? (vid.videoUrl.startsWith('http') ? vid.videoUrl : `${API_BASE_URL}/${vid.videoUrl}`) : ""}
-          className="w-full h-full object-cover"
-          playsInline
-          preload="metadata"
-          onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
-          onPlay={(e) => {
-            // Pause all other registered videos
-            document.querySelectorAll('video').forEach(v => {
-              if (v !== e.target && !v.paused) {
-                v.pause();
-              }
-            });
-          }}
-          onError={(e) => {
-            e.target.style.display = 'none';
-            e.target.parentElement.classList.add('flex', 'items-center', 'justify-center');
-            e.target.parentElement.innerHTML = '<div class="text-gray-600 dark:text-gray-500 font-black text-xs uppercase tracking-widest text-center">Preview Unavailable</div>';
-          }}
-        />
+        <video controls src={vid.videoUrl ? (vid.videoUrl.startsWith('http') ? vid.videoUrl : `${API_BASE_URL}/${vid.videoUrl}`) : ""} className="w-full h-full object-cover" preload="metadata" onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }} onPlay={(e) => { document.querySelectorAll('video').forEach(v => { if (v !== e.target && !v.paused) v.pause(); }); }} />
         <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest">{vid.age} Yrs · {vid.address?.split(',')[0]}</div>
-        {isAdmin && isMatch && (
-          <div className="absolute top-4 left-4 px-4 py-2 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-lg shadow-emerald-500/20 animate-pulse">POTENTIAL WINNER</div>
-        )}
+        {isAdmin && isMatch && <div className="absolute top-4 left-4 px-4 py-2 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-lg shadow-emerald-500/20 animate-pulse">POTENTIAL WINNER</div>}
       </div>
-
       <div className="p-8">
         <div className="flex justify-between items-start mb-6 gap-2">
           <div className="flex items-center gap-3">
               <UserAvatar name={vid.name} size="w-12 h-12" textClass="text-sm" />
              <div>
-                <h4 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none group-hover:text-blue-600 transition-colors uppercase italic">{vid.name}</h4>
+                <h4 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none uppercase italic">{vid.name}</h4>
                 <p className="text-xs font-bold text-gray-400 mt-2">Active Contestant</p>
              </div>
           </div>
           <div className="flex flex-col items-end">
-            {!isAdmin ? (
-              <div className="text-gray-400 font-black text-xs uppercase tracking-widest mt-1">Pending</div>
-            ) : (
-               <div className="flex items-center gap-1 text-emerald-500 font-black text-xl">
-                 <Star size={18} fill="currentColor" /> {avgR}
-               </div>
-            )}
+            {!isAdmin ? <div className="text-gray-400 font-black text-xs uppercase tracking-widest mt-1">Pending</div> : <div className="flex items-center gap-1 text-emerald-500 font-black text-xl"><Star size={18} fill="currentColor" /> {avgR}</div>}
             <p className="text-[10px] font-bold text-gray-400">{vid.ratings?.length || 0} Votes</p>
           </div>
         </div>
-
         <div className="relative p-6 rounded-[2rem] bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Self Rank</p>
-              <p className="text-2xl font-black text-blue-600 dark:text-blue-400 text-center">{vid.rating}.0</p>
-            </div>
+            <div><p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Self Rank</p><p className="text-2xl font-black text-blue-600 dark:text-blue-400 text-center">{vid.rating}.0</p></div>
             <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
             <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Audience Score</p>
-              {!isAdmin ? (
-                <p className="text-[12px] font-black tracking-widest text-gray-400 text-center pt-2">HIDDEN</p>
-              ) : (
-                <p className={`text-2xl font-black text-center ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}</p>
-              )}
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Audience Avg</p>
+              {!isAdmin ? <p className="text-[12px] font-black tracking-widest text-gray-400 text-center pt-2 italic">Hidden</p> : <p className={`text-2xl font-black text-center ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}</p>}
             </div>
           </div>
         </div>
-
-        {isAdmin && (
-          <button
-            onClick={() => onDelete(vid._id)}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-500 text-xs font-bold uppercase tracking-widest hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-800"
-          >
-            <Trash2 size={14} /> Remove Video
-          </button>
-        )}
+        {isAdmin && <button onClick={() => onDelete(vid._id)} className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-red-50 text-red-500 text-xs font-bold uppercase transition-colors"><Trash2 size={14} /> Remove Entry</button>}
       </div>
     </motion.div>
   );
@@ -133,267 +73,83 @@ const Dashboard = () => {
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { isDark } = useTheme();
   const { user } = useAuthStore();
-  const [competitionStats, setCompetitionStats] = useState({
-    totalParticipants: 0,
-    topRatedValue: 0,
-    myCurrentRanking: 0,
-    activeBattlesCount: 0
-  });
-
-  const handleDeleteVideo = async (videoId) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <span className="font-bold text-sm">Are you sure you want to permanently remove this talent submission?</span>
-        <div className="flex justify-end gap-2 mt-2">
-          <button 
-            className="px-3 py-1 bg-red-600 text-white rounded text-xs"
-            onClick={async () => {
-              toast.dismiss(t.id);
-              try {
-                const response = await axios.delete(`${API_ENDPOINTS.videos}/${videoId}`);
-                if (response.data.success) {
-                  setVideos((prevVideos) =>
-                    prevVideos.filter((video) => video._id !== videoId)
-                  );
-                  toast.success("Submission successfully removed");
-                }
-              } catch (error) {
-                console.error("Error deleting video:", error);
-                toast.error("Failed to delete video.");
-              }
-            }}
-          >
-            Yes, delete
-          </button>
-          <button 
-            className="px-3 py-1 bg-gray-200 text-gray-800 rounded text-xs"
-            onClick={() => toast.dismiss(t.id)}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), { duration: Infinity });
-  };
+  const [competitionStats, setCompetitionStats] = useState({ totalParticipants: 0, topRatedValue: 0, myCurrentRanking: 0, activeBattlesCount: 0 });
 
   async function fetchData() {
     try {
       setIsLoading(true);
-      const [allRes, battleRes] = await Promise.all([
-        axios.post(API_ENDPOINTS.allVideos),
-        axios.get(API_ENDPOINTS.battleSummary)
-      ]);
+      const [allRes, battleRes] = await Promise.all([axios.post(API_ENDPOINTS.allVideos), axios.get(API_ENDPOINTS.battleSummary)]);
       const allVideosData = allRes.data;
       const battleData = battleRes.data;
-
-      if (currentRole === 'admin') {
-        setVideos(allVideosData);
-      } else {
-        setVideos(battleData.ongoing || []);
-      }
-
+      if (user?.role === 'admin') setVideos(allVideosData); else setVideos(battleData.ongoing || []);
+      
       const totalParticipants = allVideosData.length;
-      let topRated = 0;
-      if (totalParticipants > 0) {
-        topRated = Math.max(...allVideosData.map(v =>
-          v.ratings?.length ? v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length : 0
-        ));
-      }
+      let topRated = 0; if (totalParticipants > 0) topRated = Math.max(...allVideosData.map(v => v.ratings?.length ? v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length : 0));
 
       let myRank = 0;
       if (user && battleData.ongoing?.length > 0) {
-        const sorted = [...battleData.ongoing].sort((a, b) => {
-          const avgA = a.ratings?.length ? a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length : 0;
-          const avgB = b.ratings?.length ? b.ratings.reduce((s, r) => s + r, 0) / b.ratings.length : 0;
-          return avgB - avgA;
-        });
-        const idx = sorted.findIndex(v => v.name === user.firstName || v.name?.includes(user.firstName));
+        const sorted = [...battleData.ongoing].sort((a,b) => (b.ratings?.length ? b.ratings.reduce((s,r)=>s+r,0)/b.ratings.length : 0) - (a.ratings?.length ? a.ratings.reduce((s,r)=>s+r,0)/a.ratings.length : 0));
+        const idx = sorted.findIndex(v => v.uploadedBy === (user._id || user.id));
         if (idx !== -1) myRank = idx + 1;
       }
-
-      setCompetitionStats({
-        totalParticipants,
-        topRatedValue: topRated.toFixed(1),
-        myCurrentRanking: myRank,
-        activeBattlesCount: battleData.ongoing?.length || 0
-      });
-    } catch (e) {
-      console.error("Fetch error:", e);
-    } finally {
-      setTimeout(() => setIsLoading(false), 800);
-    }
+      setCompetitionStats({ totalParticipants, topRatedValue: topRated.toFixed(1), myCurrentRanking: myRank, activeBattlesCount: battleData.ongoing?.length || 0 });
+    } catch (e) { console.error(e); } finally { setIsLoading(false); }
   }
 
-  useEffect(() => {
-    fetchData();
-  }, [user]);
+  useEffect(() => { fetchData(); }, [user]);
 
-  const filteredVideos = videos.filter(v =>
-    v.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const roleLabels = {
-    admin: { label: 'Imperial Overseer', color: 'purple' },
-    contestant: { label: 'Elite Performer', color: 'emerald' },
-    user: { label: 'Audience', color: 'blue' }
+  const handleDeleteVideo = async (videoId) => {
+    if (window.confirm("Delete this submission?")) {
+      try {
+        await axios.delete(`${API_BASE_URL}/api/admin/video/${videoId}`);
+        setVideos(v => v.filter(vid => vid._id !== videoId));
+        toast.success("Removed");
+      } catch (e) { toast.error("Error"); }
+    }
   };
 
   const currentRole = user?.role || 'user';
-
-  const statCards = [
-    { label: 'Global Talents', value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
-    { label: 'Highest Peak', value: `${competitionStats.topRatedValue}/5`, icon: <Star size={24} />, color: 'emerald' },
-    { label: currentRole === 'contestant' ? 'My Standing' : 'Active Battles', value: currentRole === 'contestant' ? `#${competitionStats.myCurrentRanking}` : competitionStats.activeBattlesCount, icon: <Trophy size={24} />, color: 'purple' }
-  ];
+  const roleLabels = { admin: { label: 'Overseer', color: 'purple' }, contestant: { label: 'Contender', color: 'emerald' }, user: { label: 'Audience', color: 'blue' } };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col transition-colors duration-500 font-sans">
       <Navbar />
       <div className="flex-grow pt-[120px] container mx-auto px-4 max-w-7xl pb-24">
-        
-        {/* Header Section */}
-        <div className="relative mb-12">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 relative z-10">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-4 py-1.5 bg-${roleLabels[currentRole].color}-600/10 text-${roleLabels[currentRole].color}-600 dark:text-${roleLabels[currentRole].color}-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-${roleLabels[currentRole].color}-500/20`}>
-                      {roleLabels[currentRole].label}
-                    </span>
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                </div>
-                <h1 className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter">
-                  {currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Hub <span className="text-blue-600">.</span>
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 font-medium mt-2 max-w-md italic">
-                  {currentRole === 'admin' 
-                    ? "Welcome to control center. Manage the arena and crown the winners." 
-                    : currentRole === 'contestant' 
-                    ? "Your stage is set. Monitor your surge and outshine the rest." 
-                    : "Discover, analyze, and reward the next generation of legends."}
-                </p>
-              </motion.div>
-
-              <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                <div className="relative group flex-grow sm:flex-grow-0">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search legends..."
-                    className="pl-12 pr-6 py-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl w-full sm:w-64 focus:ring-2 focus:ring-blue-600/20 outline-none transition-all shadow-sm font-medium dark:text-white"
-                  />
-                </div>
-
-                {currentRole === 'admin' && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate('/admin-dash')}
-                    className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl transition-all hover:shadow-blue-600/20 uppercase tracking-widest text-xs"
-                  >
-                    FULL CONTROL
-                  </motion.button>
-                )}
-              </div>
+        <div className="relative mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className={`px-4 py-1.5 bg-blue-600/10 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-500/20`}>{roleLabels[currentRole].label}</span>
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             </div>
+            <h1 className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter uppercase italic">{currentRole} Hub</h1>
+          </div>
+          <div className="flex gap-4 w-full md:w-auto">
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search legends..." className="pl-6 pr-6 py-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl w-full sm:w-64 outline-none font-medium" />
+            {currentRole === 'admin' && <button onClick={() => navigate('/admin-dash')} className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl uppercase tracking-widest text-xs">Full Control</button>}
+          </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {statCards.map((stat, i) => (
-            isLoading ? <StatSkeleton key={i} /> : (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="group p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl transition-all duration-300 relative overflow-hidden"
-              >
-                <div className={`absolute -right-4 -top-4 w-24 h-24 bg-${stat.color}-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform`} />
-                <div className="flex justify-between items-start relative z-10">
-                  <div className={`p-4 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-600 dark:text-${stat.color}-400`}>
-                    {stat.icon}
-                  </div>
-                  <TrendingUp size={16} className="text-gray-300" />
-                </div>
-                <div className="mt-6">
-                  <p className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{stat.label}</p>
-                  <p className="text-4xl font-black text-gray-900 dark:text-white mt-1 tracking-tighter">{stat.value}</p>
-                </div>
-              </motion.div>
-            )
+          {[
+            { label: 'Total Talents', value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
+            { label: 'Top Rating', value: `${competitionStats.topRatedValue}/5`, icon: <Star size={24} />, color: 'emerald' },
+            { label: currentRole === 'contestant' ? 'My Standing' : 'Active Contests', value: currentRole === 'contestant' ? `#${competitionStats.myCurrentRanking || '--'}` : competitionStats.activeBattlesCount, icon: <Trophy size={24} />, color: 'purple' }
+          ].map((stat, i) => (
+            <div key={i} className="p-8 bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm">
+              <div className="flex justify-between items-start"><div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800">{stat.icon}</div></div>
+              <div className="mt-6"><p className="text-xs font-black text-gray-400 uppercase tracking-widest">{stat.label}</p><p className="text-4xl font-black text-gray-900 dark:text-white mt-1">{stat.value}</p></div>
+            </div>
           ))}
         </div>
 
-        {/* Role-Specific Content Area */}
-        <div className="space-y-12">
-            {/* Common Banner with adjusted text */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="p-1 w-full rounded-[3rem] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-2xl shadow-blue-600/10"
-            >
-                <div className="bg-white/95 dark:bg-gray-950/95 backdrop-blur-3xl rounded-[2.9rem] p-10 flex flex-col lg:flex-row items-center gap-10">
-                    <div className="w-16 h-16 rounded-3xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/40">
-                        <Info className="text-white" size={32} />
-                    </div>
-                    <div className="flex-grow space-y-2 text-center lg:text-left">
-                        <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Authority & Guidelines</h3>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-2xl">
-                           {currentRole === 'admin' 
-                            ? "You are reading live data from Cloudinary and MongoDB. Every verdict counts. Ensure integrity of ratings and video moderation."
-                            : currentRole === 'contestant'
-                            ? "Your ranking shifts every hour based on audience verdict. Keep your identity clean and your video reachable for maximum growth."
-                            : "As a voter, your rating carries weight. Be fair, be bold. The next champion depends on your precision."}
-                        </p>
-                    </div>
-                    <button onClick={() => navigate('/how-it-works')} className="px-8 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-black text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors uppercase tracking-widest text-[10px]">Guidelines</button>
-                </div>
-            </motion.div>
-
-            {/* Video Feed (Differently accessible) */}
-            <div className="space-y-8">
-                <div className="flex items-center gap-4 text-center md:text-left">
-                    <div className="h-px bg-gray-200 dark:bg-gray-800 flex-grow" />
-                    <h2 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.3em]">
-                        {currentRole === 'admin' ? "Global Repository" : currentRole === 'contestant' ? "Contender Arena" : "Verdict Pipeline"}
-                    </h2>
-                    <div className="h-px bg-gray-200 dark:bg-gray-800 flex-grow" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {isLoading ? [1, 2, 3, 4, 5, 6].map(i => <VideoSkeleton key={i} />) : (
-                        <AnimatePresence>
-                            {filteredVideos.map((v, i) => {
-                                const avgR = v.ratings?.length ? (v.ratings.reduce((a, b) => a + b, 0) / v.ratings.length).toFixed(1) : '0.0';
-                                const isMatch = Math.abs(parseFloat(avgR) - v.rating) < 0.3;
-                                return <VideoCard key={v._id || i} vid={v} index={i} isMatch={isMatch} isAdmin={currentRole === 'admin'} isContestant={currentRole === 'contestant'} onDelete={handleDeleteVideo} />;
-                            })}
-                        </AnimatePresence>
-                    )}
-                </div>
-                
-                {filteredVideos.length === 0 && !isLoading && (
-                    <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/50 rounded-[3rem] border border-dashed border-gray-200 dark:border-gray-800">
-                        <p className="text-gray-400 font-bold italic">No contestants found matching your query.</p>
-                    </div>
-                )}
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {isLoading ? [1, 2, 3].map(i => <VideoSkeleton key={i} />) : videos.filter(v => v.name?.toLowerCase().includes(searchQuery.toLowerCase())).map((v, i) => (
+            <VideoCard key={v._id || i} vid={v} index={i} isMatch={Math.abs(parseFloat(v.ratings?.length ? (v.ratings.reduce((a,b)=>a+b,0)/v.ratings.length) : 0) - v.rating) < 0.5} isAdmin={currentRole === 'admin'} isContestant={currentRole === 'contestant'} onDelete={handleDeleteVideo} />
+          ))}
         </div>
       </div>
       <Footer />
-      <style>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .animate-shimmer {
-          animation: shimmer 1.5s infinite;
-        }
-      `}</style>
     </div>
   );
 };
