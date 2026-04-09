@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS, API_BASE_URL } from "../config/api";
-import useRazorpay from "react-razorpay";
 import axios from "axios";
 import formSideBg from '../assets/battle_live.png';
 import Navbar from "./Navbar";
@@ -651,7 +650,6 @@ const FormComponent = () => {
           >
             {isSubmitting ? "Uploading..." : "Submit Application"}
           </button>
-        </div>
         </div>
       </form>
       </div>
