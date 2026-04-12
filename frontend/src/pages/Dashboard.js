@@ -81,10 +81,12 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete, onPla
       <div className="p-8">
         <div className="flex justify-between items-start mb-6 gap-2">
           <div className="flex items-center gap-3">
-              <UserAvatar name={vid.name} size="w-12 h-12" textClass="text-sm" />
+              <UserAvatar name={isAdmin ? vid.name : 'Anonymous'} size="w-12 h-12" textClass="text-sm" />
              <div>
-                <h4 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none group-hover:text-blue-600 transition-colors uppercase italic">{vid.name}</h4>
-                <p className="text-xs font-bold text-gray-400 mt-2">Active Contestant</p>
+                <h4 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none group-hover:text-blue-600 transition-colors uppercase italic">
+                  {isAdmin ? vid.name : 'HIDDEN'}
+                </h4>
+                <p className="text-xs font-bold text-gray-400 mt-2">{isAdmin ? 'Active Contestant' : 'Hidden Professional'}</p>
              </div>
           </div>
           <div className="flex flex-col items-end">
@@ -103,11 +105,7 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete, onPla
           <div className="flex items-center justify-around">
             <div className="text-center">
               <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Audience Score</p>
-              {!isAdmin ? (
-                <p className="text-[12px] font-black tracking-widest text-gray-400 pt-2">HIDDEN</p>
-              ) : (
-                <p className={`text-2xl font-black ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}<span className="text-xs ml-0.5 opacity-60">/5</span></p>
-              )}
+              <p className={`text-2xl font-black ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}<span className="text-xs ml-0.5 opacity-60">/5</span></p>
             </div>
             <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
             <div className="text-center">
@@ -270,7 +268,7 @@ const Dashboard = () => {
                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 </div>
                 <h1 className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter">
-                  {currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Hub <span className="text-blue-600">.</span>
+                  {currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Dashboard <span className="text-blue-600">.</span>
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 font-medium mt-2 max-w-md italic">
                   {currentRole === 'admin' 
