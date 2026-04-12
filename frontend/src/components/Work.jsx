@@ -1,9 +1,9 @@
 import React from "react";
-import image1 from "../assets/a (1).png"; // Import images
-import image2 from "../assets/a (2).png";
-import image3 from "../assets/a (3).png";
-import image4 from "../assets/a (4).png";
-import image5 from "../assets/a (5).png";
+import image1 from "../assets/work_auth.png"; // Import images
+import image2 from "../assets/work_rating.png";
+import image3 from "../assets/work_contest.png";
+import image4 from "../assets/work_community.png";
+import image5 from "../assets/work_discover.png";
 
 const Work = () => {
   const services = [

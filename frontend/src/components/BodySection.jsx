@@ -11,7 +11,7 @@ import {
 
 // Replace with an actual talent competition hero image
 import heroImage from '../assets/latentimage.png';
-import localVideo from '../assets/INDIA_S GOT LATENT _ EP 11 ft._bhartitv _LifeOfLimbachiyaas _TonyKakkar(1080P_HD)_001.mp4';
+import localVideo from '../assets/intro_talent.mp4';
 
 const FeatureCard = ({ icon: Icon, color, title, description }) => (
   <motion.div 

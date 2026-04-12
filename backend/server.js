@@ -120,10 +120,10 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 50000000 },
   fileFilter(req, file, cb) {
-    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+    if (file.mimetype.startsWith('video/')) {
         cb(null, true);
     } else {
-        cb(new Error('Only images and videos are allowed!'), false);
+        cb(new Error('Only videos are allowed!'), false);
     }
   }
 });

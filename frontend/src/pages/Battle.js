@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 import imgChampion from "../assets/battle_champion.png";
 import imgLive from "../assets/battle_live.png";
-import imgUpcoming from "../assets/1 (2).jpg";
+import imgUpcoming from "../assets/upcoming_battle.jpg";
 
 const Battle = () => {
   const navigate = useNavigate();
