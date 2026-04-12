@@ -50,7 +50,7 @@ const Login = () => {
     try {
       await login(email, password); // Zustand login action
       toast.success("Login successful!");
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       toast.error(err.message || "Login failed!");
     }

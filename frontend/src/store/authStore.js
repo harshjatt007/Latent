@@ -26,14 +26,8 @@ export const useAuthStore = create(
       signup: async (email, password, firstName, lastName, role = 'user') => {
         set({ isLoading: true, error: null });
         try {
-          const res = await axios.post(`${API_URL}/signup`, { email, password, firstName, lastName, role });
-          if (res.data.token) localStorage.setItem("token", res.data.token);
-          // Backend now returns user + token on signup
-          if (res.data.user) {
-            set({ user: res.data.user, isAuthenticated: true, isLoading: false });
-          } else {
-            set({ isLoading: false });
-          }
+          await axios.post(`${API_URL}/signup`, { email, password, firstName, lastName, role });
+          set({ isLoading: false });
         } catch (err) {
           const msg = handleError(err);
           console.error("Signup error:", msg);

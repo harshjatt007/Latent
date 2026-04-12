@@ -100,19 +100,19 @@ const VideoCard = ({ vid, index, isMatch, isAdmin, isContestant, onDelete, onPla
         </div>
 
         <div className="relative p-6 rounded-[2rem] bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Self Rank</p>
-              <p className="text-2xl font-black text-blue-600 dark:text-blue-400 text-center">{vid.rating}.0</p>
+          <div className="flex items-center justify-around">
+            <div className="text-center">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Audience Score</p>
+              {!isAdmin ? (
+                <p className="text-[12px] font-black tracking-widest text-gray-400 pt-2">HIDDEN</p>
+              ) : (
+                <p className={`text-2xl font-black ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}<span className="text-xs ml-0.5 opacity-60">/5</span></p>
+              )}
             </div>
             <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
-            <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 text-center">Audience Score</p>
-              {!isAdmin ? (
-                <p className="text-[12px] font-black tracking-widest text-gray-400 text-center pt-2">HIDDEN</p>
-              ) : (
-                <p className={`text-2xl font-black text-center ${isMatch ? 'text-emerald-500' : 'text-gray-400'}`}>{avgR}</p>
-              )}
+            <div className="text-center">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Total Votes</p>
+              <p className="text-2xl font-black text-gray-700 dark:text-gray-300">{vid.ratings?.length || 0}</p>
             </div>
           </div>
         </div>
