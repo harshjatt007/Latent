@@ -43,7 +43,7 @@ const Navbar = () => {
   const navLinks = [
     { label: 'Home', path: '/', type: 'route' },
     { label: 'Battles', path: '/battle', type: 'route' },
-    { label: 'Ratings', path: '/ratings', type: 'route' },
+    ...(user?.role !== 'contestant' ? [{ label: 'Ratings', path: '/ratings', type: 'route' }] : []),
     { label: 'Contact', path: '/contact', type: 'route' }
   ];
 

@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 
 const VideoPlayer = () => {
   const { filename } = useParams();
-  const videoUrl = `/videos/${filename}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-500">
@@ -14,12 +13,13 @@ const VideoPlayer = () => {
         <div className="max-w-5xl w-full bg-white dark:bg-gray-900 p-10 rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-800 transition-all">
           <h2 className="text-4xl font-black mb-8 tracking-tighter uppercase italic">Now Playing: {filename}</h2>
           <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-600/10">
-              <video
-              src={videoUrl}
+            <video
+              src={`/uploads/${filename}`}
               controls
-              autoPlay
+              preload="metadata"
+              playsInline
               className="w-full h-auto"
-              />
+            />
           </div>
         </div>
       </div>

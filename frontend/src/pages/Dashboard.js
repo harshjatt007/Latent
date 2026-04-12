@@ -212,7 +212,7 @@ const Dashboard = () => {
           const avgB = b.ratings?.length ? b.ratings.reduce((s, r) => s + r, 0) / b.ratings.length : 0;
           return avgB - avgA;
         });
-        const idx = sorted.findIndex(v => v.name === user.firstName || v.name?.includes(user.firstName));
+        const idx = sorted.findIndex(v => String(v.uploadedBy) === String(user.id || user._id));
         if (idx !== -1) myRank = idx + 1;
       }
 
@@ -247,9 +247,8 @@ const Dashboard = () => {
   const currentRole = user?.role || 'user';
 
   const statCards = [
-    { label: currentRole === 'admin' ? 'Global Talents' : "Live Talents", value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
-    { label: 'Highest Peak', value: `${competitionStats.topRatedValue}/5`, icon: <Star size={24} />, color: 'emerald' },
-    { label: currentRole === 'contestant' ? 'My Standing' : 'Active Battles', value: currentRole === 'contestant' ? `#${competitionStats.myCurrentRanking}` : competitionStats.activeBattlesCount, icon: <Trophy size={24} />, color: 'purple' }
+    { label: currentRole === 'admin' ? 'Global Talents' : "Live Entries", value: competitionStats.totalParticipants, icon: <Users size={24} />, color: 'blue' },
+    { label: 'Active Arena', value: competitionStats.activeBattlesCount, icon: <Trophy size={24} />, color: 'purple' }
   ];
 
   return (

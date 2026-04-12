@@ -438,8 +438,8 @@ app.post('/api/updateProfile', async (req, res) => {
     const { userId, firstName, lastName, email, bio } = req.body;
 
     // Validate input
-    if (!userId || !firstName || !lastName || !email) {
-      return res.status(400).json({ message: 'First name, last name, and email are required.' });
+    if (!userId || !firstName || !email) {
+      return res.status(400).json({ message: 'First name and email are required.' });
     }
 
     // Find the user by their ID

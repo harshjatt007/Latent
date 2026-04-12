@@ -196,6 +196,8 @@ const BodySection = () => {
               <div className="aspect-video">
                 <video 
                   controls 
+                  preload="metadata"
+                  playsInline
                   src={localVideo} 
                   className="w-full h-full rounded-md"
                 ></video>
